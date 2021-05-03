@@ -1,0 +1,159 @@
+\documentclass[runningheads]{llncs}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{dirtree}
+\geometry{
+left={3.75cm},
+right={3.75cm},
+top={3.5cm},
+bottom={3.5cm},
+}
+
+\begin{document}
+\title{PS Einführung Simulation}
+\subtitle{Simulationszeit (Darstellung, Funktionalität, \\ Scheduling von Ereignissen/Prozessen)}
+\author{Dario Hornsteiner, Sofia Bonini, Sabine Hasenleithner}
+\institute{Universitaet Salzburg, 5. Mai 2021}
+\maketitle
+
+\section{Allgemeine Erklärung:}
+Die Simulationszeit ist eine fiktive Modellzeit, unabhängig von der realen Zeit und der Ausführungsdauer einer Simulation. Bei der Diskreten Ereignis-Simulation springt die Simulationszeit von Ereignis zu Ereignis.Ein Ereignis löst maßgebliche relevante Zustandsänderungen bei einer oder mehreren Entitäten aus. Dabei ist ein Eintritts- oder Ereigniszeitpunkt ein Zeitpunkt in der Simulationszeit.\\
+Es gibt eine orthogonale Beziehung zwischen Simulationszeit und Rechenzeit. Die Simulationszeit schreitet sprunghaft voran, da sie Ereignisse abarbeitet. Sie ist monoton steigend. Rechenzeit wird zur Ausführung am Rechner benötigt, wobei Ereignisse Rechenzeit verbrauchen, aber keine Simulationszeit. Intervalle zwischen Ereignissen verbrauchen Simulationszeit, aber keine Rechenzeit.\\
+In der Softwareumsetzung wird eine Variable verwendet, die die  aktuelle Simulationszeit darstellt. \\
+Der Scheduler ist die Steuerung der Ablaufkontrolle, eine sequenzielle Abarbeitung
+der nach Ereigniszeitpunkten geordneten Ereignisse. Die Simulationszeit springt von Ereigniszeitpunkt zu Ereigniszeitpunkt, nur dabei wird die Simulationsuhr weiter gesetzt.\\
+ \\
+Es gibt mehrere wichtige Klassen für die Simulationszeit, folgende befinden sich im package \textit{desmoj.core.simulator}\\
+
+\section{Desmoj Klassen betreffend Simulationszeit}
+\subsection{TimeSpan}
+\dirtree{%
+.1 \textit{java.lang.Object}.
+.2 \textit{desmoj.core.simulator.TimeSpan}.
+}
+.\\
+Hierbei handelt es sich um Zeitspannen der Simulationszeit. Jede Zeitspanne der Simulationszeit wird von einem individuellen Objekt dieser Klasse repräsentiert und bietet eigene Methoden für arithmetische Operationen und Vergleiche. Diese Klasse versichert, dass nur gültige Zeitspannen der Simulationszeit erstellt werden.\\
+Es gibt mehrere Konstruktoren, und zwar:\\
+Constructor = \begin{itemize}
+\item \textit{TimeSpan(double duration)}
+\item \textit{TimeSpan(double duration, java.util.concurrent.TimeUnit unit)}
+\item \textit{TimeSpan(long duration)}
+\item \textit{TimeSpan(long duration, java.util.concurrent.TimeUnit unit)}
+\end{itemize}
+Man kann also im Grunde aussuchen, ob man einen Long oder Double Wert verwendet, und ob man eine bestimmte Einheit mitgeben möchte. Wenn man keine Einheit angibt, wird die Einheit der Referenzzeit verwendet. Als duration übergibt man die Dauer der Zeitspanne.\\
+
+\subsection{TimeInstant}
+\dirtree{%
+.1 \textit{java.lang.Object}.
+.2 \textit{desmoj.core.simulator.TimeInstant}.
+}
+.\\
+Ein TimeInstant ist ein Zeitpunkt der Simulationszeit. Dieser wird verwendet, um einen Zeitpunkt der Simulationszeit zu zeigen, an dem sich der Zustand des Modells ändert. Jeder Zeitpunkt der Simulationszeit wird mit einem eigenen Objekt dieser Klasse repräsentiert und bietet auch seine eigenen Methoden für arithmetische Operationen.\\
+ \\
+Es gibt mehrere Konstruktoren, bei denen man unter anderem einen Double Wert als Zeit übergeben kann oder ein \textit{“Date”} Objekt, ein \textit{“Calender”} Objekt oder eine Referenz. Der für uns relevanteste ist folgender:\\
+Constructor = \textit{TimeInstant(long time, java.util.concurrent.TimeUnit unit)}\\
+Der Konstruktor konstruiert ein Objekt mit dem gegebenen Wert in der gegebenen Zeiteinheit. \\
+
+\subsection{SimClock}
+\dirtree{%
+.1 \textit{java.lang.Object}.
+.2 \textit{java.util.Observable}.
+.3 \textit{desmoj.core.simulator.SimClock}.
+}
+.\\
+Die Simulationsuhr ist, grob gesagt, die Kapselung der Simulationszeit. Sie zeigt die tatsächliche Simulationszeit. Die Simulationszeit kann von jedem Objekt abgefragt werden, aber kann nur von dem Scheduler gesetzt werden, der für das Modell zuständig ist.\\
+Die Simulationsuhr erweitert die java.util.Observable Klasse, dies lässt zu, dass Observer sich bei der Simulationuhr registrieren können und somit immer informiert werden, wenn sich die Simulationszeit ändert. Dies kann dazu verwendet werden, einen komplett automatischen Statistikzähler zur Verfügung zu stellen. Jedes mal, wenn die Simulationszeit sich ändert, wird ein Zähler, der bei der Simulationsuhr registriert ist, benachrichtigt und kann nun den Wert abfragen, den er überwacht. Auf diese Weise benötigt man keinen expliziten Aufruf, dass der Zähler seinen Wert aktualisieren muss. Dies könnte jedoch die Performance schwächen, im Vergleich zu expliziten Aufrufen den Wert zu aktualisieren, da der Wert, der beobachtet wird, sich nicht immer ändert, wenn sich die Simulationszeit ändert.\\
+ \\
+Constructor = \textit{SimClock(java.lang.String name)}\\
+Dieser Konstruktor konstruiert eine Simulationsuhr mit keinen festgelegten Parametern. Als Default wird die Simulationszeit auf 0 gesetzt.\\
+
+\subsection{Scheduler}
+Prinzipiell soll das Scheduling die Simulation steuern. Jedoch ist die Funktion je nach Modellierungsstil unterschiedlich. Wir haben in der Vorlesung bereits zwei Modellierungsstile kennengelernt. Den ereignisorientierten und den prozessorientierten. \\
+\begin{itemize}
+\item Ereignisorientierter Modellierungsstil: Das Scheduling steuert hier den Ablauf der Simulation. Die Ereignisse werden nach Ereigniszeitpunkten geordnet und durch die Simulation abgearbeitet, wobei nur diese Zeitpunkte simuliert werden, zu welchen auch wirklich ein Ereignis stattfindet (also nicht die gesamte Zeitdauer). Wie in der VO erwähnt: \textit{“Die Simulationszeit springt von Ereigniszeitpunkt zu Ereigniszeitpunkt und nur dabei wird die Simulationsuhr weiter gesetzt.“}
+\item Prozessorientierter Modellierungsstil: Der Scheduler steuert im Hintergrund die Abarbeitung beliebig vieler Prozesse. Die Prozesse werden in richtiger Reihenfolge und den dafür vorgesehen Zeitabständen vom Scheduler ausgeführt. Wobei der Scheduler auch für die Verwaltung und die (Re-)Aktivierung der jeweiligen Prozesse zuständig ist. Zeitverbrauchende Aktivitäten werden mittels inaktiver Prozessphasen abgebildet:
+\begin{itemize}
+\item hold(): Abbildung einer zeitverbrauchenden Aktivität. Inaktiv für ein vorgegebenes fixes Intervall der Simulationszeit (Kontrolle an den Scheduler)
+\item passivate(): Abbildung eines Wartezustands. Inaktiv für unbestimmte Dauer der Simulationszeit (Kontrolle auf unbestimmte Zeit abgegeben, Reaktivierung meist durch andere Prozesse)
+\end{itemize}
+\end{itemize}
+\dirtree{%
+.1 \textit{java.lang.Object}.
+.2 \textit{desmoj.core.simulator.NamedObject}.
+.3 \textit{desmoj.core.simulator.Scheduler}.
+}
+.\\
+In Desmoj ist der Scheduler mittels einer eigenen Klasse dargestellt und der Konstruktor ist wie folgt dargestellt:\\
+\textit{Scheduler(Experiment exp, java.lang.String name, EventList eventList)}\\
+Erzeugt einen Scheduler mit dem gegebenen Namen und einer Event-Liste.\\
+
+\subsection{Experiment}
+\dirtree{%
+.1 \textit{java.lang.Object}.
+.2 \textit{desmoj.core.simulator.NamedObject}.
+.3 \textit{desmoj.core.simulator.Experiment}.
+}
+.\\
+Hier folgen die wichtigsten Methoden betreffend Simulationszeit:
+\subsubsection{ShowProgressBar}
+\begin{itemize}
+\item \textit{public boolean isShowProgressBar():} liefert einen boolean Wert wahr wenn ein Verlaufsbalken für dieses Experiment aktiviert wäre.
+\item \textit{public void setShowProgressBar(boolean newShowProgressBar):} diese Funktion muss aufgerufen werden, bevor die Simulation startet. Mit Parameter true, wird für dieses Experiment ein Verlaufsbalken angezeigt. Mit false, wird kein Balken angezeigt.
+\item \textit{public void setShowProgressBarAutoclose(boolean autoclose):} hat nur Auswirkungen, wenn zuvor bei setShowProgressBar(true) ausgewählt wurde. Muss ebenfalls vor Beginn des Experiments ausgeführt werden. Stellt ein ob der Verlaufsbalken nach Ablauf des Experiments automatisch geschlossen werden soll. Parameter: true, der Balken schließt sich nach Ablauf des Experiments. false, der Balken bleibt offen, bis dieser vom User manuell geschlossen wird.
+\end{itemize}
+
+\subsubsection{tracePeriod}
+\begin{itemize}
+\item \textit{public void tracePeriod(TimeInstant startTime, TimeInstant stopTime):} Hier kann ein gewisser Zeitraum gewählt werden, in welchem ein Simulations Output generiert werden soll (z.B. .csv Dateien). Teilweise können Simulationen eine gewisse Vorlaufzeit benötigen, bis Werte entstehen welche für das Experiment tatsächlich von Relevanz sind. Mit dieser Funktionen kann hierfür eine Zeitspanne gewählt werden. Optional kann auch im jeweiligen Programmcode mit \textit{public void traceOn(TimeInstant startTime), public void traceOff(TimeInstant stopTime)} die Output-Erstellung gesteuert werden.
+\end{itemize}
+
+\subsubsection{start}
+\begin{itemize}
+\item \textit{public void start():} startet das Experiment mit default Zeit = 0. Kann nur einmal in einem Experiment verwendet werden. Es initialisiert das verknüpfte Modell und startet die Simulation.
+\item \textit{public void start(TimeInstant initTime):} startet das Experiment mit der angegebenen Simulationszeit als Startzeit. Allerdings wird dieses erst wirklich gestartet, sobald ein gültiges Modell damit verknüpft wurde.
+\end{itemize}
+
+\subsubsection{stop}
+\begin{itemize}
+\item \textit{public void stop(ModelCondition stopCond):} damit können auch mehrere (durch mehrmaligen aufrufen mit unterschiedlichen Bedingungen) Modellbedingungen gesetzt werden, unter welchen die Simulation gestoppt werden soll. Also z.B. ab einem erreichten Wert. Sobald eine der Bedingungen erfüllt ist wird die Simulation gestoppt. Um zu vermeiden, dass die Simulation gegebenenfalls unendlich weiterläuft empfiehlt es sich trotzdem die Simulation mit dem Setzen einer vorgegeben Zeit zu stoppen. Wie in der nächsten Methode beschrieben.
+\item \textit{public void stop(TimeInstant stopTime):} stoppt die Simulation an einer gegebenen Simulationszeit. Falls keine gültige Zeit als Parameter übergeben wurde, gilt 0 als default Wert und die Simulation kann nicht weiter als bis zu diesem Zeitpunkt laufen. Mehrmaliges aufrufen dieser Methode überschreibt die zuvor festgesetzte Zeit.
+public void stop(): stoppt die Simulation sofort zur aktuellen Simulationszeit. Diese kann aber später mit proceed() wieder fortgesetzt werden.
+\end{itemize}
+
+\subsubsection{ExecutionSpeedRate}
+\begin{itemize}
+\item \textit{public void setExecutionSpeedRate(double rate):} damit kann die Geschwindigkeitsrate der Durchführung gesteuert werden. Wird der Wert größer als 0 gesetzt verhält sich das proportional zur realen Uhrzeit. \\
+Folgende Gleichung gilt hier für eine Geschwindigkeitsrate $> 0:$ \\
+rate $*$ simulation-time $=$ wall-clock-time (reale Uhrzeit).\\
+Falls die Rate $=$ 0 oder $<$ 0 ist: die Simulation wird so schnell wie möglich durchgeführt. \\
+Der default Wert beträgt = 0 (also so schnell wie möglich).\\
+\end{itemize}
+
+\subsubsection{get-Methoden}
+\begin{itemize}
+\item \textit{getSimClock():} liefert die eingestellte SimClock für dieses Experiment. ModelComponents benötigt Zugriff zur SimClock um die aktuelle Simulationszeit abzurufen.
+\item \textit{getModel():} liefert das Modell das aktuell mit dem Experiment verbunden ist, bzw. den Wert NULL falls noch kein Modell eingestellt wurde.
+\item \textit{getScheduler():} liefert den eingestellten Scheduler für dieses Experiment.
+\item \textit{getRealTimeStartTime():} liefert die echte Startzeit als long Wert.
+\item \textit{getStopTime():} liefer die TimeInstant an welcher erwartet wird, dass das Experiment stoppt.
+\item \textit{getExecutionSpeedRate():} liefert die aktuelle Geschwindigkeitsrate als double Wert.
+\end{itemize}
+ 
+
+
+ 
+
+
+
+%-----Bibliography-------
+\begin{thebibliography}{8}
+\bibitem{ref_url1}
+\url{http://desmoj.sourceforge.net/tutorial/overview/0.html}
+\bibitem{ref_url2}
+\url{http://desmoj.sourceforge.net/doc/desmoj/core/simulator/Experiment.html}
+\end{thebibliography}
+\end{document}
