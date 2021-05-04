@@ -20,16 +20,16 @@ bottom={3.5cm},
 \institute{Universitaet Salzburg, 5. Mai 2021}
 \maketitle
 
-\section{Allgemeine Erklärung:}
-Die Simulationszeit ist eine fiktive Modellzeit, unabhängig von der realen Zeit und der Ausführungsdauer einer Simulation. Bei der Diskreten Ereignis-Simulation springt die Simulationszeit von Ereignis zu Ereignis.Ein Ereignis löst maßgebliche relevante Zustandsänderungen bei einer oder mehreren Entitäten aus. Dabei ist ein Eintritts- oder Ereigniszeitpunkt ein Zeitpunkt in der Simulationszeit.\\
+\section{Allgemeine Erklärung}
+Die Simulationszeit ist eine fiktive Modellzeit, unabhängig von der realen Zeit und der Ausführungsdauer einer Simulation. Bei der Diskreten Ereignis-Simulation springt die Simulationszeit von Ereignis zu Ereignis. Ein Ereignis löst maßgebliche relevante Zustandsänderungen bei einer oder mehreren Entitäten aus. Dabei ist ein Eintritts- oder Ereigniszeitpunkt ein Zeitpunkt in der Simulationszeit.\\
 Es gibt eine orthogonale Beziehung zwischen Simulationszeit und Rechenzeit. Die Simulationszeit schreitet sprunghaft voran, da sie Ereignisse abarbeitet. Sie ist monoton steigend. Rechenzeit wird zur Ausführung am Rechner benötigt, wobei Ereignisse Rechenzeit verbrauchen, aber keine Simulationszeit. Intervalle zwischen Ereignissen verbrauchen Simulationszeit, aber keine Rechenzeit.\\
 In der Softwareumsetzung wird eine Variable verwendet, die die  aktuelle Simulationszeit darstellt. \\
 Der Scheduler ist die Steuerung der Ablaufkontrolle, eine sequenzielle Abarbeitung
 der nach Ereigniszeitpunkten geordneten Ereignisse. Die Simulationszeit springt von Ereigniszeitpunkt zu Ereigniszeitpunkt, nur dabei wird die Simulationsuhr weiter gesetzt.\\
  \\
-Es gibt mehrere wichtige Klassen für die Simulationszeit, folgende befinden sich im package \textit{desmoj.core.simulator}\\
+Es gibt mehrere wichtige Klassen für die Simulationszeit; die folgenden befinden sich im Package \textit{desmoj.core.simulator}.\\
 
-\section{Desmoj Klassen betreffend Simulationszeit}
+\section{DESMO-J-Klassen betreffend Simulationszeit}
 \subsection{TimeSpan}
 \dirtree{%
 .1 \textit{java.lang.Object}.
@@ -37,14 +37,14 @@ Es gibt mehrere wichtige Klassen für die Simulationszeit, folgende befinden sic
 }
 .\\
 Hierbei handelt es sich um Zeitspannen der Simulationszeit. Jede Zeitspanne der Simulationszeit wird von einem individuellen Objekt dieser Klasse repräsentiert und bietet eigene Methoden für arithmetische Operationen und Vergleiche. Diese Klasse versichert, dass nur gültige Zeitspannen der Simulationszeit erstellt werden.\\
-Es gibt mehrere Konstruktoren, und zwar:\\
-Constructor = \begin{itemize}
+Es gibt mehrere Konstruktoren, und zwar:
+\begin{itemize}
 \item \textit{TimeSpan(double duration)}
 \item \textit{TimeSpan(double duration, java.util.concurrent.TimeUnit unit)}
 \item \textit{TimeSpan(long duration)}
 \item \textit{TimeSpan(long duration, java.util.concurrent.TimeUnit unit)}
 \end{itemize}
-Man kann also im Grunde aussuchen, ob man einen Long oder Double Wert verwendet, und ob man eine bestimmte Einheit mitgeben möchte. Wenn man keine Einheit angibt, wird die Einheit der Referenzzeit verwendet. Als duration übergibt man die Dauer der Zeitspanne.\\
+Man kann also im Grunde aussuchen, ob man einen \textit{long}- oder \textit{double}-Wert verwendet, und ob man eine bestimmte Einheit mitgeben möchte. Wenn man keine Einheit angibt, wird die Einheit der Referenzzeit verwendet. Als \textit{duration} übergibt man die Dauer der Zeitspanne.\\
 
 \subsection{TimeInstant}
 \dirtree{%
@@ -54,8 +54,8 @@ Man kann also im Grunde aussuchen, ob man einen Long oder Double Wert verwendet,
 .\\
 Ein TimeInstant ist ein Zeitpunkt der Simulationszeit. Dieser wird verwendet, um einen Zeitpunkt der Simulationszeit zu zeigen, an dem sich der Zustand des Modells ändert. Jeder Zeitpunkt der Simulationszeit wird mit einem eigenen Objekt dieser Klasse repräsentiert und bietet auch seine eigenen Methoden für arithmetische Operationen.\\
  \\
-Es gibt mehrere Konstruktoren, bei denen man unter anderem einen Double Wert als Zeit übergeben kann oder ein \textit{“Date”} Objekt, ein \textit{“Calender”} Objekt oder eine Referenz. Der für uns relevanteste ist folgender:\\
-Constructor = \textit{TimeInstant(long time, java.util.concurrent.TimeUnit unit)}\\
+Es gibt mehrere Konstruktoren, bei denen man unter anderem einen Double Wert als Zeit übergeben kann oder ein \textit{Date}-Objekt, ein \textit{Calendar}-Objekt oder eine Referenz. Der für uns relevanteste ist folgender:\\
+\textit{TimeInstant(long time, java.util.concurrent.TimeUnit unit)}\\
 Der Konstruktor konstruiert ein Objekt mit dem gegebenen Wert in der gegebenen Zeiteinheit. \\
 
 \subsection{SimClock}
@@ -68,7 +68,7 @@ Der Konstruktor konstruiert ein Objekt mit dem gegebenen Wert in der gegebenen Z
 Die Simulationsuhr ist, grob gesagt, die Kapselung der Simulationszeit. Sie zeigt die tatsächliche Simulationszeit. Die Simulationszeit kann von jedem Objekt abgefragt werden, aber kann nur von dem Scheduler gesetzt werden, der für das Modell zuständig ist.\\
 Die Simulationsuhr erweitert die java.util.Observable Klasse, dies lässt zu, dass Observer sich bei der Simulationuhr registrieren können und somit immer informiert werden, wenn sich die Simulationszeit ändert. Dies kann dazu verwendet werden, einen komplett automatischen Statistikzähler zur Verfügung zu stellen. Jedes mal, wenn die Simulationszeit sich ändert, wird ein Zähler, der bei der Simulationsuhr registriert ist, benachrichtigt und kann nun den Wert abfragen, den er überwacht. Auf diese Weise benötigt man keinen expliziten Aufruf, dass der Zähler seinen Wert aktualisieren muss. Dies könnte jedoch die Performance schwächen, im Vergleich zu expliziten Aufrufen den Wert zu aktualisieren, da der Wert, der beobachtet wird, sich nicht immer ändert, wenn sich die Simulationszeit ändert.\\
  \\
-Constructor = \textit{SimClock(java.lang.String name)}\\
+\textit{SimClock(java.lang.String name)}\\
 Dieser Konstruktor konstruiert eine Simulationsuhr mit keinen festgelegten Parametern. Als Default wird die Simulationszeit auf 0 gesetzt.\\
 
 \subsection{Scheduler}
