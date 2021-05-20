@@ -8,13 +8,12 @@ import co.paralleluniverse.fibers.SuspendExecution;
 public class PatientProcess extends SimProcess {
 	
     private EmergencyModel model;
-    private Priority priority;
     private boolean isEmergency;
 
     public PatientProcess(Model owner, String name, boolean showInTrace, boolean isEmergency) {
         super(owner, name, showInTrace);
         model = (EmergencyModel) owner;
-        priority = isEmergency ? Priority.HIGH : Priority.LOW;
+        this.setQueueingPriority(isEmergency ? 3 : 1);
         this.isEmergency = isEmergency;
     }
 
@@ -30,8 +29,7 @@ public class PatientProcess extends SimProcess {
             // at least one of the working doctors is available
             if (!model.docQueue.isEmpty()) {
                 DocProcess doc = model.docQueue.first();
-                model.docQueue.remove(doc);
-                
+                model.docQueue.remove(doc);  
                 doc.activateAfter(this);
                 
                 // patient is being treated
@@ -44,8 +42,7 @@ public class PatientProcess extends SimProcess {
             }
             
             // change priority after first treatment
-            priority = Priority.MEDIUM;
-            
+            this.setQueueingPriority(2);
             sendTraceNote("patient received treatment " + treatment);
     	}
     	
