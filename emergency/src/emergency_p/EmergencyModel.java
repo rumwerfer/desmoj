@@ -51,8 +51,8 @@ public class EmergencyModel extends Model {
     }
 	
 	public static void main(String[] args) {
-		Experiment emergencyExp = new Experiment("emergency room");
-		EmergencyModel emergencyModel = new EmergencyModel(null, "emergency room model", true, true);  
+		Experiment emergencyExp = new Experiment("emergency");
+		EmergencyModel emergencyModel = new EmergencyModel(null, "emergency model", true, true);  
 		emergencyModel.connectToExperiment(emergencyExp);
 		
 		// stop simulation after 22 days
