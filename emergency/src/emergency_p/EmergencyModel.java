@@ -2,6 +2,7 @@ package emergency_p;
 
 import desmoj.core.simulator.*;
 import desmoj.core.dist.*;
+import emergency_p.*;
 
 public class EmergencyModel extends Model {
 	
@@ -11,8 +12,8 @@ public class EmergencyModel extends Model {
     protected ProcessQueue<PatientProcess> patientQueue;
    	protected ProcessQueue<DocProcess> docQueue;
    	
-   	private double shareOfEmergencies = 0.2;
-   	private double meanArrivalTime = 40.0;
+   	private double shareOfEmergencies = 0.2; // percentage of how many patients are emergencies
+   	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
    	private double meanTreatmentTime = 25.0; // non-emergency cases
    	private double emergencyTimeFactor = 1.5; // how much longer treatments of emergency cases take
    	
