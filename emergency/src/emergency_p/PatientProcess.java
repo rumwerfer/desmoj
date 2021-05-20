@@ -8,12 +8,14 @@ import co.paralleluniverse.fibers.SuspendExecution;
 public class PatientProcess extends SimProcess {
 	
     private EmergencyModel model;
-    private Priority priority; 
+    private Priority priority;
+    private boolean isEmergency;
 
     public PatientProcess(Model owner, String name, boolean showInTrace, boolean isEmergency) {
         super(owner, name, showInTrace);
         model = (EmergencyModel) owner;
         priority = isEmergency ? Priority.HIGH : Priority.LOW;
+        this.isEmergency = isEmergency;
     }
 
     public void lifeCycle() throws SuspendExecution{
