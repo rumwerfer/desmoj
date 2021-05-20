@@ -31,8 +31,8 @@ public class EmergencyModel extends Model {
         NewPatientProcess patientCreator = new NewPatientProcess(this, "patient creation", true);
         patientCreator.activate();
 
-        DocProcess doc1 = new DocProcess(this, "Doctor 1", true);
-        DocProcess doc2 = new DocProcess(this, "Doctor 2", true);
+        DocProcess doc1 = new DocProcess(this, "doc", true);
+        DocProcess doc2 = new DocProcess(this, "doc", true);
         doc1.activate();
         doc2.activate();
     }
