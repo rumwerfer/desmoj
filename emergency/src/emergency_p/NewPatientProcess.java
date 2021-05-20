@@ -1,31 +1,31 @@
 package emergency_p;
 
 import desmoj.core.simulator.*;
-import emergency_p.Emergency_model;
+import emergency_p.EmergencyModel;
 import emergency_p.PatientProcess;
 import co.paralleluniverse.fibers.SuspendExecution;
 
 public class NewPatientProcess extends SimProcess {
-    private Emergency_model myModel;
+	
+    private EmergencyModel model;
 
     public NewPatientProcess (Model owner, String name, boolean showInTrace) {
 	   super(owner, name, showInTrace);
-
-	   myModel = (Emergency_model) owner;
+	   model = (EmergencyModel) owner;
     }
     
     public void lifeCycle() throws SuspendExecution {
 	
         while (true) {
-            // hold this process until new patient arrives
-            hold (new TimeSpan(myModel.getPatientArrivalTime()));
+        	
+            // wait for predefined time
+            hold (new TimeSpan(model.getPatientArrivalTime()));
      
             // create new patient
-            PatientProcess newPatient = new PatientProcess (myModel, "patient", true);
+            PatientProcess newPatient = new PatientProcess (model, "patient", true);
     
             // new patient enters emergency room
             newPatient.activateAfter(this);
-    
         }
     }
 

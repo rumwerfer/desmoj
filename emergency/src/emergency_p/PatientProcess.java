@@ -1,36 +1,37 @@
 package emergency_p;
 
 import desmoj.core.simulator.*;
-import emergency_p.Emergency_model;
-import emergency_p.CounterProcess;
+import emergency_p.EmergencyModel;
+import emergency_p.DocProcess;
 import co.paralleluniverse.fibers.SuspendExecution;
 
 public class PatientProcess extends SimProcess {
-    private Emergency_model myModel;
+	
+    private EmergencyModel model;
 
     public PatientProcess(Model owner, String name, boolean showInTrace) {
         super(owner, name, showInTrace);
-
-        myModel = (Emergency_model) owner;
+        model = (EmergencyModel) owner;
     }
 
     public void lifeCycle() throws SuspendExecution{
 
         // patient enters emergency room --> goes into queue
-        myModel.patientQueue.insert(this);
+        model.patientQueue.insert(this);
         sendTraceNote("patient queue length: " + 
-            myModel.patientQueue.length());
+            model.patientQueue.length());
 
         // at least one of the working doctors is available
-        if (!myModel.docQueue.isEmpty()) {
-            CounterProcess counter = myModel.docQueue.first();
-            myModel.docQueue.remove(counter);
+        if (!model.docQueue.isEmpty()) {
+            DocProcess doc = model.docQueue.first();
+            model.docQueue.remove(doc);
             
-            counter.activateAfter(this);
+            doc.activateAfter(this);
             
             // patient is being treated
             passivate();
         }
+        
         // no doctor is available
         else {
             passivate();

@@ -3,14 +3,14 @@ package emergency_p;
 import desmoj.core.simulator.*;
 import desmoj.core.dist.*;
 
-public class Emergency_model extends Model {
+public class EmergencyModel extends Model {
 	
 	private ContDistExponential patientArrivalTime; // random numbers defined by mean
     private ContDistUniform treatmentTime;			// defined by min and max
     protected ProcessQueue<PatientProcess> patientQueue;
-   	protected ProcessQueue<CounterProcess> docQueue;
+   	protected ProcessQueue<DocProcess> docQueue;
    	
-	public Emergency_model(Model owner, String name, boolean showInReport, boolean showIntrace) {
+	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
 	}
 	
@@ -25,8 +25,8 @@ public class Emergency_model extends Model {
         NewPatientProcess newPatient = new NewPatientProcess(this, "patient creation", true);
         newPatient.activate();
 
-        CounterProcess doc1 = new CounterProcess(this, "doc", true);
-        CounterProcess doc2 = new CounterProcess(this, "doc", true);
+        DocProcess doc1 = new DocProcess(this, "doc", true);
+        DocProcess doc2 = new DocProcess(this, "doc", true);
         doc1.activate();
         doc2.activate();
     }
@@ -40,12 +40,12 @@ public class Emergency_model extends Model {
         treatmentTime = new ContDistUniform(this, "treatment time", 10.0, 30.0, true, true);	
 
        	patientQueue = new ProcessQueue<PatientProcess>(this, "patient queue",true, true);	
-    	docQueue = new ProcessQueue<CounterProcess>(this, "doc queue",true, true);
+    	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
     }
 	
 	public static void main(String[] args) {
 		Experiment emergencyExp = new Experiment("emergency room");
-		Emergency_model emergencyModel = new Emergency_model(null, "emergency room model", true, true);  
+		EmergencyModel emergencyModel = new EmergencyModel(null, "emergency room model", true, true);  
 		emergencyModel.connectToExperiment(emergencyExp);
 		
 		// stop simulation after 22 days
