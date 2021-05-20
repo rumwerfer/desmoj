@@ -33,7 +33,6 @@ public class DocProcess extends SimProcess{
                 hold(new TimeSpan(model.getTreatmentTime()));
                 
                 // patient is sent home or has to wait again for second treatment
-                // TODO;
                 patient.activate(new TimeSpan(0.0));
             }
         }

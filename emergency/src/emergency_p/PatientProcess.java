@@ -18,31 +18,38 @@ public class PatientProcess extends SimProcess {
         this.isEmergency = isEmergency;
     }
 
-    public void lifeCycle() throws SuspendExecution{
+    public void lifeCycle() throws SuspendExecution {
 
-        // patient enters emergency room --> goes into queue
-        model.patientQueue.insert(this);
-        sendTraceNote("patient queue length: " + 
-            model.patientQueue.length());
+    	// each patient gets two treatments
+    	for (int treatment = 0; treatment < 2; treatment++) {
+    		
+    		// patient enters queue
+            model.patientQueue.insert(this);
+            sendTraceNote("patient queue length: " + model.patientQueue.length());
 
-        // at least one of the working doctors is available
-        if (!model.docQueue.isEmpty()) {
-            DocProcess doc = model.docQueue.first();
-            model.docQueue.remove(doc);
+            // at least one of the working doctors is available
+            if (!model.docQueue.isEmpty()) {
+                DocProcess doc = model.docQueue.first();
+                model.docQueue.remove(doc);
+                
+                doc.activateAfter(this);
+                
+                // patient is being treated
+                passivate();
+            }
             
-            doc.activateAfter(this);
+            // no doctor is available
+            else {
+                passivate();
+            }
             
-            // patient is being treated
-            passivate();
-        }
-        
-        // no doctor is available
-        else {
-            passivate();
-        }
-        
-        // patient was treated and leaves or waits again for second treatment
-        // TODO;
-        sendTraceNote("patient was treated and leaves emergency room");
+            // change priority after first treatment
+            priority = Priority.MEDIUM;
+            
+            sendTraceNote("patient received treatment " + treatment);
+    	}
+    	
+        sendTraceNote("patient leaves emergency room");
     }
+
 }
