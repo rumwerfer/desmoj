@@ -1,10 +1,6 @@
 package emergency_p;
 
 import desmoj.core.simulator.*;
-import schalter2_p.KundenProcess;
-import schalter2_p.NeuerKundeProcess;
-import schalter2_p.Schalter2_p_model;
-import schalter2_p.SchalterProcess;
 import desmoj.core.dist.*;
 
 public class Emergency_model extends Model {
@@ -43,7 +39,7 @@ public class Emergency_model extends Model {
     	// treatment takes 10 to 30 minutes (evenly distributed)
         treatmentTime = new ContDistUniform(this, "treatment time", 10.0, 30.0, true, true);	
 
-       	patientQueue = new ProcessQueue<PatientQueue>(this, "patient queue",true, true);	
+       	patientQueue = new ProcessQueue<PatientProcess>(this, "patient queue",true, true);	
     	docQueue = new ProcessQueue<CounterProcess>(this, "doc queue",true, true);
     }
 	

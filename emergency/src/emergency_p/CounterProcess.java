@@ -22,7 +22,7 @@ public class CounterProcess extends SimProcess{
             if (myModel.patientQueue.isEmpty()) {
                 
                 // Schalter in entsprechende WS
-                myModel.freeCounterQueue.insert(this);
+                myModel.docQueue.insert(this);
                 
                 // abwarten weiterer Aktionen
                 passivate();

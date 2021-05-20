@@ -22,9 +22,9 @@ public class PatientProcess extends SimProcess {
             myModel.patientQueue.length());
 
         // at least one of the working doctors is available
-        if (!myModel.freeCounterQueue.isEmpty()) {
-            CounterProcess counter = myModel.freeCounterQueue.first();
-            myModel.freeCounterQueue.remove(counter);
+        if (!myModel.docQueue.isEmpty()) {
+            CounterProcess counter = myModel.docQueue.first();
+            myModel.docQueue.remove(counter);
             
             counter.activateAfter(this);
             
