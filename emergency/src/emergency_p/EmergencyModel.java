@@ -6,12 +6,14 @@ import desmoj.core.dist.*;
 public class EmergencyModel extends Model {
 	
 	private ContDistExponential patientArrivalTime; // random numbers defined by mean
-    private ContDistUniform treatmentTime;			// defined by min and max
+    private ContDistExponential treatmentTime;
     private ContDistUniform isEmergency;
     protected ProcessQueue<PatientProcess> patientQueue;
    	protected ProcessQueue<DocProcess> docQueue;
    	
    	private double shareOfEmergencies = 0.2;
+   	private double meanArrivalTime = 40.0;
+   	private double meanTreatmentTime = 25.0; // non-emergency cases
    	private double emergencyTimeFactor = 1.5; // how much longer treatments of emergency cases take
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
@@ -36,12 +38,13 @@ public class EmergencyModel extends Model {
     }
 	
 	public void init() {
-		// mean of arrival time = 40
-    	patientArrivalTime = new ContDistExponential(this, "patient arrival time", 40.0, true, true);
+		// negative-exponentially distributed
+    	patientArrivalTime = new ContDistExponential(this, "patient arrival time", meanArrivalTime, true, true);
     	patientArrivalTime.setNonNegative(true); // prevent negative arrival times
 
     	// treatment takes 10 to 30 minutes (evenly distributed)
-        treatmentTime = new ContDistUniform(this, "treatment time", 10.0, 30.0, true, true);	
+        treatmentTime = new ContDistExponential(this, "treatment time", meanTreatmentTime, true, true);	
+        treatmentTime.setNonNegative(true); // prevent negative treatment times
         
         // patients below 0.2 are emergencies -> 20%
         isEmergency = new ContDistUniform(this, "emergency", 0.0, 1.0, true, true);
@@ -57,7 +60,7 @@ public class EmergencyModel extends Model {
 		
 		// stop simulation after 22 days
 		TimeInstant startTime = new TimeInstant(0.0);
-		TimeInstant endTime = new TimeInstant(31680);
+		TimeInstant endTime = new TimeInstant(31680); // 22 * 24 * 60
 		
 		emergencyExp.tracePeriod(startTime, endTime);
 		emergencyExp.debugPeriod(startTime, endTime);
