@@ -30,7 +30,7 @@ public class DocProcess extends SimProcess{
                 model.patientQueue.remove(patient);
                 
                 // patient gets treatment
-                hold(new TimeSpan(model.getTreatmentTime()));
+                hold(new TimeSpan(model.getTreatmentTime(patient.isEmergency())));
                 
                 // patient is sent home or has to wait again for second treatment
                 patient.activate(new TimeSpan(0.0));

@@ -8,13 +8,13 @@ import co.paralleluniverse.fibers.SuspendExecution;
 public class PatientProcess extends SimProcess {
 	
     private EmergencyModel model;
-    private boolean isEmergency;
+    private boolean emergency;
 
-    public PatientProcess(Model owner, String name, boolean showInTrace, boolean isEmergency) {
+    public PatientProcess(Model owner, String name, boolean showInTrace, boolean emergency) {
         super(owner, name, showInTrace);
         model = (EmergencyModel) owner;
-        this.setQueueingPriority(isEmergency ? 3 : 1);
-        this.isEmergency = isEmergency;
+        this.setQueueingPriority(emergency ? 3 : 1);
+        this.emergency = emergency;
     }
 
     public void lifeCycle() throws SuspendExecution {
@@ -49,4 +49,7 @@ public class PatientProcess extends SimProcess {
         sendTraceNote("patient leaves emergency room");
     }
 
+    boolean isEmergency() {
+    	return emergency;
+    }
 }

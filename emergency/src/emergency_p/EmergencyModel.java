@@ -12,6 +12,7 @@ public class EmergencyModel extends Model {
    	protected ProcessQueue<DocProcess> docQueue;
    	
    	private double shareOfEmergencies = 0.2;
+   	private double emergencyTimeFactor = 1.5; // how much longer treatments of emergency cases take
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -71,8 +72,8 @@ public class EmergencyModel extends Model {
     	return patientArrivalTime.sample();
     }
 
-    public double getTreatmentTime() {
-    	return treatmentTime.sample();
+    public double getTreatmentTime(boolean emergency) {
+    	return emergency ? treatmentTime.sample() * emergencyTimeFactor : treatmentTime.sample();
     }
     
     // 20% of all patients are emergencies
