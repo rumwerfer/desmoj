@@ -7,8 +7,11 @@ public class EmergencyModel extends Model {
 	
 	private ContDistExponential patientArrivalTime; // random numbers defined by mean
     private ContDistUniform treatmentTime;			// defined by min and max
+    private ContDistUniform isEmergency;
     protected ProcessQueue<PatientProcess> patientQueue;
    	protected ProcessQueue<DocProcess> docQueue;
+   	
+   	private double shareOfEmergencies = 0.2;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -22,8 +25,8 @@ public class EmergencyModel extends Model {
 
 	public void doInitialSchedules() {
 
-        NewPatientProcess newPatient = new NewPatientProcess(this, "patient creation", true);
-        newPatient.activate();
+        NewPatientProcess patientCreator = new NewPatientProcess(this, "patient creation", true);
+        patientCreator.activate();
 
         DocProcess doc1 = new DocProcess(this, "doc", true);
         DocProcess doc2 = new DocProcess(this, "doc", true);
@@ -38,6 +41,9 @@ public class EmergencyModel extends Model {
 
     	// treatment takes 10 to 30 minutes (evenly distributed)
         treatmentTime = new ContDistUniform(this, "treatment time", 10.0, 30.0, true, true);	
+        
+        // patients below 0.2 are emergencies -> 20%
+        isEmergency = new ContDistUniform(this, "emergency", 0.0, 1.0, true, true);
 
        	patientQueue = new ProcessQueue<PatientProcess>(this, "patient queue",true, true);	
     	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
@@ -62,10 +68,15 @@ public class EmergencyModel extends Model {
 	}
 	
     public double getPatientArrivalTime() {
-	   return patientArrivalTime.sample();
+    	return patientArrivalTime.sample();
     }
 
     public double getTreatmentTime() {
-        return treatmentTime.sample();
+    	return treatmentTime.sample();
+    }
+    
+    // 20% of all patients are emergencies
+    public boolean isEmergency() {
+    	return isEmergency.sample() < shareOfEmergencies;
     }
 }

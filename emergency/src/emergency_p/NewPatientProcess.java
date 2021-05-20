@@ -22,7 +22,7 @@ public class NewPatientProcess extends SimProcess {
             hold (new TimeSpan(model.getPatientArrivalTime()));
      
             // create new patient
-            PatientProcess newPatient = new PatientProcess (model, "patient", true);
+            PatientProcess newPatient = new PatientProcess (model, "patient", true, model.isEmergency());
     
             // new patient enters emergency room
             newPatient.activateAfter(this);
