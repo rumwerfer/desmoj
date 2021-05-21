@@ -52,6 +52,7 @@ public class EmergencyModel extends Model {
 
        	patientQueue = new ProcessQueue<PatientProcess>(this, "patient queue",true, true);	
     	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
+    	docQueue.setQueueCapacity(2); // only two doctors are available
     }
 	
 	public static void main(String[] args) {
