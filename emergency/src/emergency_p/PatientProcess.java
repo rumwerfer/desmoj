@@ -1,6 +1,7 @@
 package emergency_p;
 
 import desmoj.core.simulator.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,9 +20,11 @@ public class PatientProcess extends SimProcess {
     private double beginTreat = 0;
     private double endTreat = 0;
     private double beginWait = 0;
-    private double waiting = 0;
+    private double waiting2 = 0;
     private double treat = 0;
     private int treatment = 0;
+    private double waiting1 = 0;
+    private double waiting = 0;
     
     public PatientProcess(Model owner, String name, boolean showInTrace, boolean emergency) {
         super(owner, name, showInTrace);
@@ -29,10 +32,11 @@ public class PatientProcess extends SimProcess {
         this.setQueueingPriority(emergency ? 3 : 1);
         this.emergency = emergency;
         this.name = name;
-        patientClock = model.getExperiment().getSimClock();  
+        patientClock = model.getExperiment().getSimClock(); 
     }
 
     public void lifeCycle() throws SuspendExecution {
+    	arrivalTime = patientClock.getTime().getTimeAsDouble();
 
     	// each patient gets two treatments
     	for ( treatment = 0; treatment < 2; treatment++) {
@@ -43,20 +47,19 @@ public class PatientProcess extends SimProcess {
 		    	
     		// emergency patient enters emergency queue
 		    } else if (emergency) {
-    			model.emergencyQueue.insert(this);
+    			EmergencyModel.emergencyQueue.insert(this);
     			
     		// non-emergency patient enters regular queue
     		} else {
-                model.patientQueue.insert(this);
+                EmergencyModel.patientQueue.insert(this);
     		}
     		
-    		arrivalTime = patientClock.getTime().getTimeAsDouble();
-            sendTraceNote("patient queue length: " + (model.patientQueue.length() + model.emergencyQueue.length() + model.secTreatQueue.length()));
+            sendTraceNote("patient queue length: " + (EmergencyModel.patientQueue.length() + EmergencyModel.emergencyQueue.length() + model.secTreatQueue.length()));
     		
             // at least one of the working doctors is available
             if (!model.docQueue.isEmpty()) {
             	// patient does not have to wait
-            	model.countOfNonWaitingPatients.update();
+            	EmergencyModel.countOfNonWaitingPatients.update();
                 DocProcess doc = model.docQueue.first();
                 model.docQueue.remove(doc);  
                 doc.activateAfter(this);
@@ -78,30 +81,47 @@ public class PatientProcess extends SimProcess {
             sendTraceNote("patient received treatment " + treatment);
     	}
         sendTraceNote("patient leaves emergency room");
+    	model.addToQuantil(endTreat - arrivalTime);
+
     }
     
 	public void writePatient(int treatment) {
     	treat = endTreat - beginTreat;
     	
-    	if (beginWait == 0) {
-        	waiting = 0;
+    	if (treatment == 0) {
+    		if (beginWait == 0) {
+            	waiting1 = 0;
+            	
+            } else {
+            	waiting1 = beginTreat - beginWait;
+            }
+    		
+    		patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting1, treat)));
         	
-        } else {
-        	waiting = beginTreat - beginWait;
-        }
+    	} else {
+    		if (beginWait == 0) {
+            	waiting2 = 0;
+            	
+            } else {
+            	waiting2 = beginTreat - beginWait;
+            }
+    		
+    		waiting = waiting1 + waiting2;
+    		
+    		if (waiting <= 5)
+        		EmergencyModel.countOfMaxFiveMinWaitingTime.update();
+        	
+        	EmergencyModel.tallyWaiting.update(waiting);
+        	
+        	if (emergency)
+        		EmergencyModel.tallyWaitingEmergency.update(waiting);
+        	
+        	if (!emergency)
+        		EmergencyModel.tallyWaitingRegular.update(waiting);
+        	
+        	//patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting2, treat)));
+    	}
     	
-    	if (waiting <= 5)
-    		model.countOfMaxFiveMinWaitingTime.update();
-    	
-    	model.tallyWaiting.update(waiting);
-    	
-    	if (emergency && treatment == 0)
-    		model.tallyWaitingEmergency.update(waiting);
-    	
-    	if (!emergency && treatment == 0)
-    		model.tallyWaitingRegular.update(waiting);
-    	
-        patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting, treat)));
         beginWait = 0;
     }
     
@@ -119,6 +139,10 @@ public class PatientProcess extends SimProcess {
     
     public void setEndTreat(double value) {
     	endTreat = value;
+    }
+    
+    public double getWaitingTime(double time) {
+    	return time - beginWait;
     }
 
     boolean isEmergency() {

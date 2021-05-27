@@ -1,5 +1,11 @@
 package emergency_p;
 
+/**
+ * This class provides a csv-file structure with a singleton constructor.
+ * There can only be one instant of this class.
+ * @author Sofia Bonini, Sabine Hasenleithner, Dario Hornsteiner
+ *
+ */
 public class CSVFile {
 	private StringBuilder data;
 	private static CSVFile csvFile = null;
