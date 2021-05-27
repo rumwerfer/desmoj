@@ -1,13 +1,12 @@
 package emergency_p;
 
 import desmoj.core.simulator.*;
-import emergency_p.EmergencyModel;
-import emergency_p.PatientProcess;
 import co.paralleluniverse.fibers.SuspendExecution;
 
 public class NewPatientProcess extends SimProcess {
 	
     private EmergencyModel model;
+    private int count = 0;
 
     public NewPatientProcess (Model owner, String name, boolean showInTrace) {
 	   super(owner, name, showInTrace);
@@ -22,8 +21,8 @@ public class NewPatientProcess extends SimProcess {
             hold (new TimeSpan(model.getPatientArrivalTime()));
      
             // create new patient
-            PatientProcess newPatient = new PatientProcess (model, "patient", true, model.isEmergency());
-    
+            PatientProcess newPatient = new PatientProcess (model, String.valueOf(count), true, model.isEmergency());
+            count++;
             // new patient enters emergency room
             newPatient.activateAfter(this);
         }
