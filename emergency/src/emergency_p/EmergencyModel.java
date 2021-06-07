@@ -4,8 +4,12 @@ import desmoj.core.simulator.*;
 import desmoj.core.statistic.Count;
 import desmoj.core.statistic.Tally;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 import desmoj.core.dist.*;
 
@@ -24,7 +28,7 @@ public class EmergencyModel extends Model {
     protected static ProcessQueue<PatientProcess> emergencyQueue;
     protected ProcessQueue<PatientProcess> secTreatQueue;
    	protected ProcessQueue<DocProcess> docQueue;
-   	//private static CSVFile file = CSVFile.getInstant();
+   	private static CSVFile file = CSVFile.getInstant();
     private static PatientData patientData = PatientData.getInstant();
    	private static ArrayList<Double> quantil= new ArrayList<Double>();
    	private static double quantil90;
@@ -61,6 +65,7 @@ public class EmergencyModel extends Model {
         doc1.activate();
         doc2.activate();
         doc3.activate();
+
     }
 	
 	public void init() {		
@@ -125,21 +130,8 @@ public class EmergencyModel extends Model {
 		System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> start 20 days simulation <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		printStatistics();
 		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> end 20 days simulation <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-		
-		//System.out.println(patientData.toString());
-		
-		/*		
-		// sort patientID's
-		Collections.sort(patientData.getData(), new Comparator<ArrayList<String>>() {    
-			@Override
-			public int compare(ArrayList<String> o1, ArrayList<String> o2) {
-				return (o1.get(0)).compareTo(o2.get(0));
-			}               
-		});
-		
-		System.out.println(patientData.toString());
-		
-		
+
+		// CSV File
 		PrintWriter writer;
 		try {
 			writer = new PrintWriter(new File("PatientTimes.csv"));
@@ -148,7 +140,7 @@ public class EmergencyModel extends Model {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
     public double getPatientArrivalTime() {
@@ -210,12 +202,12 @@ public class EmergencyModel extends Model {
 		System.out.println("90%-Quantile : " + quantil90 + " minutes");
 		
 		System.out.println("number of emergency patients who would be dead: " + countOfDeadPatients.getValue() + " patients");
-		//System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
-		//System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());
-		//System.out.println("min. waiting time of emergency patients: " + tallyWaitingEmergency.getMinimum());
-		//System.out.println("min. waiting time of regular patients: " + tallyWaitingRegular.getMinimum());
-		//System.out.println("mean waiting time of emergency patients: " + tallyWaitingEmergency.getMean());
-		//System.out.println("mean waiting time of regular patients: " + tallyWaitingRegular.getMean());
+		System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
+		System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());
+		System.out.println("min. waiting time of emergency patients: " + tallyWaitingEmergency.getMinimum());
+		System.out.println("min. waiting time of regular patients: " + tallyWaitingRegular.getMinimum());
+		System.out.println("mean waiting time of emergency patients: " + tallyWaitingEmergency.getMean());
+		System.out.println("mean waiting time of regular patients: " + tallyWaitingRegular.getMean());
 		
 		System.out.println();
     }

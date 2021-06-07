@@ -21,7 +21,7 @@ public class CSVFile {
 	
 	public static CSVFile getInstant() {
 		if (csvFile == null)
-			csvFile = new CSVFile("patient, treatment, emergency, arrivalTime, beginWaitingTime, endWaitingTime, beginTreatmentTime, endTreatmentTime");
+			csvFile = new CSVFile("patient, treatment, emergency, arrivalTime, waitingTime, treatmentTime");
 		return csvFile;
 	}
 	
