@@ -14,7 +14,7 @@ public class PatientProcess extends SimProcess {
     
     private SimClock patientClock;
     private String name;
-    //private CSVFile file = CSVFile.getInstant();
+    private CSVFile file = CSVFile.getInstant();
     private PatientData patientData = PatientData.getInstant();
     private double arrivalTime = 0;
     private double beginTreat = 0;
@@ -97,6 +97,7 @@ public class PatientProcess extends SimProcess {
             }
     		
     		patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting1, treat)));
+    		file.appendData("\n " + name +", " + String.valueOf(treatment+1)  +", " +  String.valueOf(emergency)  +", " +  String.valueOf(arrivalTime)  +", " +  String.valueOf(waiting1)  +", " +  String.valueOf(treat));
         	
     	} else {
     		if (beginWait == 0) {
@@ -119,7 +120,8 @@ public class PatientProcess extends SimProcess {
         	if (!emergency)
         		EmergencyModel.tallyWaitingRegular.update(waiting);
         	
-        	//patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting2, treat)));
+        	patientData.appendData(new ArrayList(Arrays.asList(name, (treatment+1), emergency, arrivalTime, waiting2, treat)));
+        	file.appendData("\n " + name +", " + String.valueOf(treatment+1)  +", " +  String.valueOf(emergency)  +", " +  String.valueOf(arrivalTime)  +", " +  String.valueOf(waiting2)  +", " +  String.valueOf(treat));
     	}
     	
         beginWait = 0;
