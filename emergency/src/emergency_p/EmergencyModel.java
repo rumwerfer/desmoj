@@ -48,13 +48,19 @@ public class EmergencyModel extends Model {
 
         NewPatientProcess patientCreator = new NewPatientProcess(this, "patient creation", true);
         patientCreator.activate();
+        //DocProcess [] doctores = new DocProcess[20];
+        //for (int index = 0; index < 20; index++) {
+        //	doctores[index] = new DocProcess(this, "doc", true);
+        // 	doctores[index].activate();
+        //}
 
         DocProcess doc1 = new DocProcess(this, "doc", true);
         DocProcess doc2 = new DocProcess(this, "doc", true);
-        // DocProcess doc3 = new DocProcess(this, "doc", true);
+        DocProcess doc3 = new DocProcess(this, "doc", true);
+       
         doc1.activate();
         doc2.activate();
-        // doc3.activate();
+        doc3.activate();
     }
 	
 	public void init() {		
@@ -83,7 +89,7 @@ public class EmergencyModel extends Model {
        	emergencyQueue = new ProcessQueue<PatientProcess>(this, "emergency queue",true, true);
        	secTreatQueue = new ProcessQueue<PatientProcess>(this, "second Treatment queue",true, true);
     	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
-    	docQueue.setQueueCapacity(2); // only two doctors are available
+    	//docQueue.setQueueCapacity(20); // only two doctors are available
     }
 	
 	public static void main(String[] args) {

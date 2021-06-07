@@ -144,8 +144,16 @@ public class PatientProcess extends SimProcess {
     public double getWaitingTime(double time) {
     	return time - beginWait;
     }
+    
+    public double getbeginWait() {
+    	return beginWait;
+    }
 
     boolean isEmergency() {
     	return emergency;
+    }
+    
+    public void setTreatment(int count) {
+    	treatment = count;
     }
 }
