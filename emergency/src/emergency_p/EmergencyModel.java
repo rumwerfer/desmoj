@@ -55,10 +55,10 @@ public class EmergencyModel extends Model {
 
         DocProcess doc1 = new DocProcess(this, "doc", true);
         DocProcess doc2 = new DocProcess(this, "doc", true);
-        // DocProcess doc3 = new DocProcess(this, "doc", true);
+//        DocProcess doc3 = new DocProcess(this, "doc", true);
         doc1.activate();
         doc2.activate();
-        // doc3.activate();
+//        doc3.activate();
     }
 	
 	public void init() {		
@@ -195,12 +195,12 @@ public class EmergencyModel extends Model {
 		System.out.println("90%-Quantile : " + quantil90 + " minutes");
 		
 		System.out.println("number of emergency patients who would be dead: " + countOfDeadPatients.getValue() + " patients");
-		//System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
-		//System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());
-		//System.out.println("min. waiting time of emergency patients: " + tallyWaitingEmergency.getMinimum());
-		//System.out.println("min. waiting time of regular patients: " + tallyWaitingRegular.getMinimum());
-		//System.out.println("mean waiting time of emergency patients: " + tallyWaitingEmergency.getMean());
-		//System.out.println("mean waiting time of regular patients: " + tallyWaitingRegular.getMean());
+		System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
+		System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());
+		System.out.println("min. waiting time of emergency patients: " + tallyWaitingEmergency.getMinimum());
+		System.out.println("min. waiting time of regular patients: " + tallyWaitingRegular.getMinimum());
+		System.out.println("mean waiting time of emergency patients: " + tallyWaitingEmergency.getMean());
+		System.out.println("mean waiting time of regular patients: " + tallyWaitingRegular.getMean());
 		
 		System.out.println();
     }
