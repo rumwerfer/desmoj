@@ -18,6 +18,7 @@ public class EmergencyModel extends Model {
 	private ContDistExponential patientArrivalTime; // random numbers defined by mean
     private ContDistUniform treatmentTime;
     private ContDistUniform isEmergency;
+    private ContDistExponential deathTime;
     protected static Count countOfNonWaitingPatients;
     protected static Count countOfMaxFiveMinWaitingTime;
     protected static Count countOfDeadPatients;
@@ -37,6 +38,8 @@ public class EmergencyModel extends Model {
    	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
    	private double meanTreatmentTime = 25.0; // non-emergency cases
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
+   	private double meanDeathTime = 30.0;
+   	private double minDeathTime = 15.0;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -72,6 +75,10 @@ public class EmergencyModel extends Model {
 		// negative-exponentially distributed
     	patientArrivalTime = new ContDistExponential(this, "patient arrival time", meanArrivalTime, true, true);
     	patientArrivalTime.setNonNegative(true); // prevent negative arrival times
+    	
+    	// to prevent values under minimum, will be added later again
+    	deathTime = new ContDistExponential(this, "emergency death time", meanDeathTime - minDeathTime, true, true);
+    	deathTime.setNonNegative(true);
     	
     	// Counter for statistical evaluation
     	countOfNonWaitingPatients = new Count(this, "number of not-waiting patients", true, false);
@@ -144,8 +151,7 @@ public class EmergencyModel extends Model {
 	}
 	
     public double getPatientArrivalTime() {
-    	double time = patientArrivalTime.sample();
-    	return time;
+    	return patientArrivalTime.sample();
     }
     
     public void addToQuantil(Double time) {
@@ -162,6 +168,10 @@ public class EmergencyModel extends Model {
     	}
 
     	return emergency ? time * emergencyTimeFactor : time;
+    }
+    
+    public double getDeathTime() {
+    	return minDeathTime + deathTime.sample();
     }
     
     // 20% of all patients are emergencies
