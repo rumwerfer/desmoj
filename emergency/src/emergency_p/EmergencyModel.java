@@ -36,7 +36,8 @@ public class EmergencyModel extends Model {
    	
    	private double shareOfEmergencies = 0.2; // percentage of how many patients are emergencies
    	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
-   	private double meanTreatmentTime = 25.0; // non-emergency cases
+   	private double minTreatmentTime = 15.0; // non-emergency cases
+   	private double maxTreatmentTime = 60.0;
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
    	private double meanDeathTime = 30.0;
    	private double minDeathTime = 15.0;
@@ -85,8 +86,7 @@ public class EmergencyModel extends Model {
     	tallyWaitingEmergency = new Tally(this, "emergency patients waiting Time", true, false);
 
     	// treatment takes 15 minutes to 1 hour (evenly distributed)
-        treatmentTime = new ContDistUniform(this, "treatment time", meanTreatmentTime-10, meanTreatmentTime+35, true, true);	
-        treatmentTime.setNonNegative(true); // prevent negative treatment times
+        treatmentTime = new ContDistUniform(this, "treatment time", minTreatmentTime, maxTreatmentTime, true, true);	
         
         // patients below 0.2 are emergencies -> 20%
         isEmergency = new ContDistUniform(this, "emergency", 0.0, 1.0, true, true);
