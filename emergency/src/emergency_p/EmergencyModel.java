@@ -119,7 +119,7 @@ public class EmergencyModel extends Model {
 		printStatistics();
 		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> end 2 days initialization <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 				
-		// ----------------------------------------------------initialization-phase--------------------------------------------------------------//
+		// ----------------------------------------------------simulation-phase--------------------------------------------------------------//
 		
 		emergencyExp.stop(endTime); // result after 20 days
 
