@@ -144,6 +144,9 @@ public class PatientProcess extends SimProcess {
     }
     
     public double getWaitingTime(double time) {
+    	if (beginWait == 0) {
+    		return 0;
+    	}
     	return time - beginWait;
     }
     

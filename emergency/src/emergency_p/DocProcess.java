@@ -62,7 +62,7 @@ public class DocProcess extends SimProcess{
         		PatientProcess patient = EmergencyModel.emergencyQueue.first();
                 EmergencyModel.emergencyQueue.remove(patient);
                 
-                	if (patient.getbeginWait() != 0 && patient.getWaitingTime(docClock.getTime().getTimeAsDouble()) > 15) { // patient dies after 15 minutes
+                	if (patient.getWaitingTime(docClock.getTime().getTimeAsDouble()) > 15) { // patient dies after 15 minutes
                 	patient.setBeginTreat(docClock.getTime().getTimeAsDouble());
                 	EmergencyModel.countOfDeadPatients.update();
                 	sendTraceNote("patient dies in waiting queue");
