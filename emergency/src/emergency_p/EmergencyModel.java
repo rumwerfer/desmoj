@@ -40,6 +40,7 @@ public class EmergencyModel extends Model {
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
    	private double meanDeathTime = 30.0;
    	private double minDeathTime = 15.0;
+   	private int numDocs = 3;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -55,19 +56,12 @@ public class EmergencyModel extends Model {
 
         NewPatientProcess patientCreator = new NewPatientProcess(this, "patient creation", true);
         patientCreator.activate();
-        //DocProcess [] doctores = new DocProcess[20];
-        //for (int index = 0; index < 20; index++) {
-        //	doctores[index] = new DocProcess(this, "doc", true);
-        // 	doctores[index].activate();
-        //}
-
-        DocProcess doc1 = new DocProcess(this, "doc", true);
-        DocProcess doc2 = new DocProcess(this, "doc", true);
-        DocProcess doc3 = new DocProcess(this, "doc", true);
-       
-        doc1.activate();
-        doc2.activate();
-        doc3.activate();
+        
+        DocProcess [] docs = new DocProcess[numDocs];
+        for (int index = 0; index < numDocs; index++) {
+        	docs[index] = new DocProcess(this, "doc", true);
+        	docs[index].activate();
+        }
 
     }
 	
@@ -101,7 +95,6 @@ public class EmergencyModel extends Model {
        	emergencyQueue = new ProcessQueue<PatientProcess>(this, "emergency queue",true, true);
        	secTreatQueue = new ProcessQueue<PatientProcess>(this, "second Treatment queue",true, true);
     	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
-    	//docQueue.setQueueCapacity(20); // only two doctors are available
     }
 	
 	public static void main(String[] args) {
