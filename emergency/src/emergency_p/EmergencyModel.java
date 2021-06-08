@@ -17,6 +17,7 @@ public class EmergencyModel extends Model {
 	
 	private ContDistExponential patientArrivalTime; // random numbers defined by mean
     private ContDistUniform treatmentTime;
+    private ContDistUniform secondTreatmentTime;
     private ContDistUniform isEmergency;
     private ContDistExponential deathTime;
     protected static Count countOfNonWaitingPatients;
@@ -38,10 +39,12 @@ public class EmergencyModel extends Model {
    	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
    	private double minTreatmentTime = 15.0; // non-emergency cases
    	private double maxTreatmentTime = 60.0;
+   	private double minSecondTreatmentTime = 5.0;
+   	private double maxSecondTreatmentTime = 30.0;
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
    	private double meanDeathTime = 30.0;
    	private double minDeathTime = 15.0;
-   	private int numDocs = 3;
+   	private int numDocs = 2;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -86,7 +89,8 @@ public class EmergencyModel extends Model {
     	tallyWaitingEmergency = new Tally(this, "emergency patients waiting Time", true, false);
 
     	// treatment takes 15 minutes to 1 hour (evenly distributed)
-        treatmentTime = new ContDistUniform(this, "treatment time", minTreatmentTime, maxTreatmentTime, true, true);	
+        treatmentTime = new ContDistUniform(this, "treatment time", minTreatmentTime, maxTreatmentTime, true, true);
+        secondTreatmentTime = new ContDistUniform(this, "second treatment time", minSecondTreatmentTime, maxSecondTreatmentTime, false, true);
         
         // patients below 0.2 are emergencies -> 20%
         isEmergency = new ContDistUniform(this, "emergency", 0.0, 1.0, true, true);
@@ -152,14 +156,10 @@ public class EmergencyModel extends Model {
     }
 
     public double getTreatmentTime(PatientProcess p, boolean emergency, int treatment) {
-    	double time = treatmentTime.sample();
-    	ContDistUniform secondTreatment = new ContDistUniform(this, "second treatment time", 5, p.getTreatTime(), false, true);
-    	
     	// time for second treatment is shorter
-    	if (treatment > 0) {
-    		return secondTreatment.sample();
-    	}
-
+    	double time = treatment == 0 ? treatmentTime.sample() : secondTreatmentTime.sample();
+    	
+    	// time for emergencies is longer
     	return emergency ? time * emergencyTimeFactor : time;
     }
     
