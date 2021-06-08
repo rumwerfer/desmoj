@@ -109,13 +109,13 @@ public class EmergencyModel extends Model {
 		
 		// stop simulation after 22 days
 		TimeInstant startTime = new TimeInstant(0.0);
-		TimeInstant TwoDaysTime = new TimeInstant(2880.0); // 2 * 24 * 60
+		TimeInstant twoDaysTime = new TimeInstant(2880.0); // 2 * 24 * 60
 		TimeInstant endTime = new TimeInstant(31680); // 22 * 24 * 60
 		
 		// ----------------------------------------------------initialization-phase--------------------------------------------------------------//
 		emergencyExp.tracePeriod(startTime, endTime);
 		emergencyExp.debugPeriod(startTime, endTime);
-		emergencyExp.stop(TwoDaysTime); // result after 2 days
+		emergencyExp.stop(twoDaysTime); // result after 2 days
 
 		emergencyExp.start(); 
 		
