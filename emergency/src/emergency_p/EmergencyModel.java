@@ -54,6 +54,8 @@ public class EmergencyModel extends Model {
    	private int peakBegin = 10;
    	private int peakEnd = 22;
    	private int numDocs = 2;
+   	private int numPeakDocs = 3;
+   	private int numOffPeakDocs = 1;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
 		super(owner, name, showInReport, showIntrace);
@@ -70,12 +72,25 @@ public class EmergencyModel extends Model {
         NewPatientProcess patientCreator = new NewPatientProcess(this, "patient creation", true);
         patientCreator.activate();
         
-        DocProcess [] docs = new DocProcess[numDocs];
-        for (int index = 0; index < numDocs; index++) {
-        	docs[index] = new DocProcess(this, "doc", true);
-        	docs[index].activate();
+        DocProcess[] docs;
+        if (!peakHoursExtension) { // all docs work all day
+            docs = new DocProcess[numDocs];
+            for (int index = 0; index < numDocs; index++) {
+            	docs[index] = new DocProcess(this, "doc", true, -1, -1);
+            	docs[index].activate();
+            }
+        
+        } else {
+        	docs = new DocProcess[numPeakDocs + numOffPeakDocs];
+        	for (int index = 0; index < numPeakDocs; index++) {
+	         	docs[index] = new DocProcess(this, "peak doc", true, peakBegin, peakEnd);
+	         	docs[index].activate();
+            }
+        	for (int index = 0; index < numOffPeakDocs; index++) {
+	         	docs[numPeakDocs + index] = new DocProcess(this, "off-peak doc", true, peakEnd, peakBegin);
+	         	docs[numPeakDocs + index].activate();
+            }
         }
-
     }
 	
 	public void init() {		
@@ -170,8 +185,16 @@ public class EmergencyModel extends Model {
     }
     
     private boolean isPeakHour() {
-    	int hours = ((int) getExperiment().getSimClock().getTime().getTimeAsDouble() / 60) % 24;
+    	int hours = getDayHours();
     	return (hours >= peakBegin && hours < peakEnd);
+    }
+    
+    int getDayMinutes() {
+    	return (int) getExperiment().getSimClock().getTime().getTimeAsDouble()  % 1440; // 24*60
+    }
+    
+    int getDayHours() {
+    	return getDayMinutes() / 60;
     }
     
     public void addToQuantil(Double time) {

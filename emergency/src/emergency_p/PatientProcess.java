@@ -4,6 +4,7 @@ import desmoj.core.simulator.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 import co.paralleluniverse.fibers.SuspendExecution;
 
@@ -56,21 +57,20 @@ public class PatientProcess extends SimProcess {
     		
             sendTraceNote("patient queue length: " + (EmergencyModel.patientQueue.length() + EmergencyModel.emergencyQueue.length() + model.secTreatQueue.length()));
     		
-            // at least one of the working doctors is available
-            if (!model.docQueue.isEmpty()) {
-            	// patient does not have to wait
-            	EmergencyModel.countOfNonWaitingPatients.update();
-                DocProcess doc = model.docQueue.first();
-                model.docQueue.remove(doc);  
-                doc.activateAfter(this);
-                
-                // patient is being treated
-                passivate();
-                
-            // no doctor is available
-            } else {
+            Optional<DocProcess> doc = findDoc();
+            
+            // no doc available, wait
+            if (doc.isEmpty()) {
             	beginWait = patientClock.getTime().getTimeAsDouble();
-                passivate();               
+                passivate();
+            }
+            
+            // doc available, patient does not have to wait
+            else {
+            	EmergencyModel.countOfNonWaitingPatients.update();
+                model.docQueue.remove(doc.get());
+                doc.get().activateAfter(this);
+                passivate(); // patient is being treated
             }
                         
             // write waiting and treatment time of patient to the patient data
@@ -83,6 +83,17 @@ public class PatientProcess extends SimProcess {
         sendTraceNote("patient leaves emergency room");
     	model.addToQuantil(endTreat - arrivalTime);
 
+    }
+    
+    private Optional<DocProcess> findDoc() {
+    	DocProcess doc = null;
+        while (doc == null && !model.docQueue.isEmpty()) {
+        	doc = model.docQueue.removeFirst();
+        	if (doc.restIfShiftOver()) { // find new doc if shift is over
+        		doc = null;
+        	}
+        }
+        return Optional.ofNullable(doc);
     }
     
 	public void writePatient(int treatment) {

@@ -1,5 +1,7 @@
 package emergency_p;
 
+import desmoj.core.exception.DelayedInterruptException;
+import desmoj.core.exception.InterruptException;
 import desmoj.core.simulator.*;
 
 import co.paralleluniverse.fibers.SuspendExecution;
@@ -9,17 +11,21 @@ public class DocProcess extends SimProcess{
 	private EmergencyModel model;
 	//private CSVFile file = CSVFile.getInstant();
 	private SimClock docClock;
+	private int shiftStart;
+	private int shiftEnd;
 	
-	public DocProcess (Model owner, String name, boolean showInTrace) {
+	public DocProcess (Model owner, String name, boolean showInTrace, int shiftStart, int shiftEnd) {
 		super(owner, name, showInTrace);
 	    model = (EmergencyModel) owner;
 	    docClock = model.getExperiment().getSimClock();
+	    this.shiftStart = shiftStart;
+	    this.shiftEnd = shiftEnd;
 	}
 	
 	public void lifeCycle() throws SuspendExecution {
         
-        // doc is working 24 hours
         while (true) {
+        	restIfShiftOver();
             
         	// no waiting emergencies
         	if (EmergencyModel.emergencyQueue.isEmpty()) {
@@ -85,4 +91,36 @@ public class DocProcess extends SimProcess{
         	}
         }
     }
+	
+	boolean restIfShiftOver() {
+		if (shiftEnd != shiftStart && model.getDayHours() > shiftEnd) {
+			try {
+				hold(new TimeSpan(getOffHours() * 60 - getOvertimeInMinutes()));
+			} catch (InterruptException | SuspendExecution e) {
+				throw new RuntimeException(e);
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	private int getOvertimeInMinutes() {
+		int currentTimeInMinutes = model.getDayMinutes();
+		int shiftEndInMinutes = shiftEnd * 60;
+		
+		if (currentTimeInMinutes > shiftEndInMinutes) {
+			return currentTimeInMinutes - shiftEndInMinutes;
+		} else { // overtime passed midnight
+			return currentTimeInMinutes + 1440 - shiftEndInMinutes;
+		}
+	}
+	
+	private int getOffHours() {
+		if (shiftEnd > shiftStart) {
+			return shiftEnd - shiftStart;
+		} else {
+			return 24 - shiftEnd + shiftStart;
+		}
+	}
 }
+
