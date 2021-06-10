@@ -15,7 +15,12 @@ import desmoj.core.dist.*;
 
 public class EmergencyModel extends Model {
 	
-	private ContDistExponential patientArrivalTime; // random numbers defined by mean
+	// switches for extensions
+	private boolean peakHours = true;
+	
+	private ContDistExponential avgArrivalTime; // random numbers defined by mean
+	private ContDistExponential peakArrivalTime;
+	private ContDistExponential offPeakArrivalTime;
     private ContDistUniform treatmentTime;
     private ContDistUniform secondTreatmentTime;
     private ContDistUniform isEmergency;
@@ -32,11 +37,13 @@ public class EmergencyModel extends Model {
    	protected ProcessQueue<DocProcess> docQueue;
    	private static CSVFile file = CSVFile.getInstant();
     private static PatientData patientData = PatientData.getInstant();
-   	private static ArrayList<Double> quantil= new ArrayList<Double>();
+   	private static ArrayList<Double> quantil = new ArrayList<Double>();
    	private static double quantil90;
    	
    	private double shareOfEmergencies = 0.2; // percentage of how many patients are emergencies
    	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
+   	private double peakMeanArrivalTime = 25.0;
+   	private double offPeakMeanArrivalTime = 100.0;
    	private double minTreatmentTime = 15.0; // non-emergency cases
    	private double maxTreatmentTime = 60.0;
    	private double minSecondTreatmentTime = 5.0;
@@ -44,6 +51,8 @@ public class EmergencyModel extends Model {
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
    	private double meanDeathTime = 30.0;
    	private double minDeathTime = 15.0;
+   	private int peakBegin = 10;
+   	private int peakEnd = 22;
    	private int numDocs = 2;
    	
 	public EmergencyModel(Model owner, String name, boolean showInReport, boolean showIntrace) {
@@ -71,8 +80,13 @@ public class EmergencyModel extends Model {
 	
 	public void init() {		
 		// negative-exponentially distributed
-    	patientArrivalTime = new ContDistExponential(this, "patient arrival time", meanArrivalTime, true, true);
-    	patientArrivalTime.setNonNegative(true); // prevent negative arrival times
+    	avgArrivalTime = new ContDistExponential(this, "patient arrival time", meanArrivalTime, true, true);
+    	avgArrivalTime.setNonNegative(true); // prevent negative arrival times
+    	peakArrivalTime = new ContDistExponential(this, "peak hours patient arrival time", peakMeanArrivalTime, true, true);
+    	peakArrivalTime.setNonNegative(true); // prevent negative arrival times
+    	offPeakArrivalTime = new ContDistExponential(this, "off-peak hours patient arrival time", offPeakMeanArrivalTime, true, true);
+    	offPeakArrivalTime.setNonNegative(true); // prevent negative arrival times
+    	
     	
     	// to prevent values under minimum, will be added later again
     	deathTime = new ContDistExponential(this, "emergency death time", meanDeathTime - minDeathTime, true, true);
@@ -148,7 +162,16 @@ public class EmergencyModel extends Model {
 	}
 	
     public double getPatientArrivalTime() {
-    	return patientArrivalTime.sample();
+    	if (!peakHours) {
+    		return avgArrivalTime.sample();
+    	}
+    	
+    	return isPeakHour() ? peakArrivalTime.sample() : offPeakArrivalTime.sample();
+    }
+    
+    private boolean isPeakHour() {
+    	int hours = ((int) getExperiment().getSimClock().getTime().getTimeAsDouble() / 60) % 24;
+    	return (hours >= peakBegin && hours < peakEnd);
     }
     
     public void addToQuantil(Double time) {
