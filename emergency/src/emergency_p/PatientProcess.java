@@ -60,14 +60,13 @@ public class PatientProcess extends SimProcess {
             Optional<DocProcess> doc = findDoc();
             
             // no doc available, wait
-            if (doc.isEmpty()) {
+            if (!doc.isPresent()) {
             	beginWait = patientClock.getTime().getTimeAsDouble();
                 passivate();
             }
             
             // doc available, patient does not have to wait
             else {
-            	EmergencyModel.countOfNonWaitingPatients.update();
                 model.docQueue.remove(doc.get());
                 doc.get().activateAfter(this);
                 passivate(); // patient is being treated
@@ -119,6 +118,9 @@ public class PatientProcess extends SimProcess {
             }
     		
     		waiting = waiting1 + waiting2;
+    		
+    		if (waiting == 0)
+    			EmergencyModel.countOfNonWaitingPatients.update();
     		
     		if (waiting <= 5)
         		EmergencyModel.countOfMaxFiveMinWaitingTime.update();
