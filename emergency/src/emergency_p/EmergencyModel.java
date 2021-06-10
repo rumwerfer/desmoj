@@ -16,7 +16,7 @@ import desmoj.core.dist.*;
 public class EmergencyModel extends Model {
 	
 	// switches for extensions
-	private boolean peakHours = true;
+	private boolean peakHoursExtension = true;
 	
 	private ContDistExponential avgArrivalTime; // random numbers defined by mean
 	private ContDistExponential peakArrivalTime;
@@ -162,7 +162,7 @@ public class EmergencyModel extends Model {
 	}
 	
     public double getPatientArrivalTime() {
-    	if (!peakHours) {
+    	if (!peakHoursExtension) {
     		return avgArrivalTime.sample();
     	}
     	
