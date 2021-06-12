@@ -43,7 +43,7 @@ public class DocProcess extends SimProcess{
                        patient.setBeginTreat(docClock.getTime().getTimeAsDouble());
                        
                        // patient gets treatment
-                       hold(new TimeSpan(model.getTreatmentTime(patient, false, patient.getTreatment())));
+                       hold(new TimeSpan(model.getTreatmentTime(patient, false, false, patient.getTreatment())));
                        
                        // patient is sent home or has to wait again for second treatment
                        patient.activate(new TimeSpan(0.0));
@@ -56,7 +56,7 @@ public class DocProcess extends SimProcess{
                     patient.setBeginTreat(docClock.getTime().getTimeAsDouble());
                     
                     // patient gets treatment
-                    hold(new TimeSpan(model.getTreatmentTime(patient, false, patient.getTreatment())));
+                    hold(new TimeSpan(model.getTreatmentTime(patient, false, false, patient.getTreatment())));
                     
                     // patient is sent home or has to wait again for second treatment
                     patient.activate(new TimeSpan(0.0));
@@ -81,7 +81,7 @@ public class DocProcess extends SimProcess{
                 	patient.setBeginTreat(docClock.getTime().getTimeAsDouble());
                     
                     // patient gets treatment
-                    hold(new TimeSpan(model.getTreatmentTime(patient, true, patient.getTreatment())));
+                    hold(new TimeSpan(model.getTreatmentTime(patient, true, false, patient.getTreatment())));
                     
                     // patient is sent home or has to wait again for second treatment
                     patient.activate(new TimeSpan(0.0));

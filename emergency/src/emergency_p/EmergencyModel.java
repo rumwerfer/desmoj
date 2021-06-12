@@ -36,7 +36,9 @@ public class EmergencyModel extends Model {
 	private ContDistExponential offPeakArrivalTime;
     private ContDistUniform treatmentTime;
     private ContDistUniform secondTreatmentTime;
+    private ContDistUniform covidTreatmentTime;
     private ContDistUniform isEmergency;
+    private ContDistUniform hasCovid;
     private ContDistExponential deathTime;
     protected static Count countOfNonWaitingPatients;
     protected static Count countOfMaxFiveMinWaitingTime;
@@ -47,7 +49,9 @@ public class EmergencyModel extends Model {
     protected static ProcessQueue<PatientProcess> patientQueue;
     protected static ProcessQueue<PatientProcess> emergencyQueue;
     protected ProcessQueue<PatientProcess> secTreatQueue;
+    protected static ProcessQueue<PatientProcess> covidQueue;
    	protected ProcessQueue<DocProcess> docQueue;
+   	protected ProcessQueue<CovidDocProcess> covidDocQueue;
    	private static CSVFile file = CSVFile.getInstant();
     private static PatientData patientData = PatientData.getInstant();
    	private static ArrayList<Double> quantil = new ArrayList<Double>();
@@ -55,6 +59,7 @@ public class EmergencyModel extends Model {
    	static double[] meanWaiting;
    	
    	private double shareOfEmergencies = 0.2; // percentage of how many patients are emergencies
+   	private double shareOfCovidPatients = 0.05; // percentage of how many patients have potential covid
    	private double meanArrivalTime = 40.0; // on average a patient arrives every 40 minutes
    	private double peakMeanArrivalTime = 25.0;
    	private double offPeakMeanArrivalTime = 100.0;
@@ -62,6 +67,8 @@ public class EmergencyModel extends Model {
    	private double maxTreatmentTime = 60.0;
    	private double minSecondTreatmentTime = 5.0;
    	private double maxSecondTreatmentTime = 30.0;
+   	private double minCovidTreatmentTime = 15.0;
+   	private double maxCovidTreatmentTime = 60.0;
    	private double emergencyTimeFactor = 2.0; // how much longer treatments of emergency cases take
    	private double meanDeathTime = 30.0;
    	private double minDeathTime = 15.0;
@@ -130,6 +137,10 @@ public class EmergencyModel extends Model {
 	         	docs[numPeakDocs + index].activate();
             }
         }
+        
+        // covid testing doctor
+        CovidDocProcess coviddoc = new CovidDocProcess(this, "covid doc", true);
+        coviddoc.activate();
     }
 	
 	public void init() {		
@@ -159,14 +170,20 @@ public class EmergencyModel extends Model {
     	// treatment takes 15 minutes to 1 hour (evenly distributed)
         treatmentTime = new ContDistUniform(this, "treatment time", minTreatmentTime, maxTreatmentTime, true, true);
         secondTreatmentTime = new ContDistUniform(this, "second treatment time", minSecondTreatmentTime, maxSecondTreatmentTime, false, true);
+        covidTreatmentTime = new ContDistUniform(this, "covid treatment time", minCovidTreatmentTime, maxCovidTreatmentTime, false, true);
         
         // patients below 0.2 are emergencies -> 20%
         isEmergency = new ContDistUniform(this, "emergency", 0.0, 1.0, true, true);
+        
+        // patients below 0.05 are possible covid positive -> 5%
+        hasCovid = new ContDistUniform(this, "covid", 0.0, 1.0, true, true);
 
        	patientQueue = new ProcessQueue<PatientProcess>(this, "patient queue",true, true);	
        	emergencyQueue = new ProcessQueue<PatientProcess>(this, "emergency queue",true, true);
        	secTreatQueue = new ProcessQueue<PatientProcess>(this, "second Treatment queue",true, true);
     	docQueue = new ProcessQueue<DocProcess>(this, "doc queue",true, true);
+    	covidDocQueue = new ProcessQueue<CovidDocProcess>(this, "covid doc queue",true, true);
+    	covidQueue = new ProcessQueue<PatientProcess>(this, "covid queue",true, true);
     }
 	
 	public static void main(String[] args) {
@@ -330,12 +347,12 @@ public class EmergencyModel extends Model {
     	// Historgram for arrival time per hour
     	double[] hourArray = arrivalHours.stream().mapToDouble(i -> i).toArray();
     	HistogramDataset dataset6 = new HistogramDataset();
-    	dataset6.addSeries("Number of patients", hourArray, 23, 0, 23);
+    	dataset6.addSeries("Number of patients", hourArray, 24, 0, 24);
    	
     	JFreeChart chart6 = ChartFactory.createHistogram(
-    			"Histogram for arrival time per hour", "hour of day","number of patients",
+    			"Histogram for arrival time per hour \n after 20 runs after 20 days", "hour of day","number of patients",
     			dataset6, PlotOrientation.VERTICAL, true, true, false);
-    	ApplicationFrame punkteframe6 = new ApplicationFrame("histogram mean waiting time both patient groups"); 
+    	ApplicationFrame punkteframe6 = new ApplicationFrame("histogram for arrival timer per hour"); 
 
     	ChartPanel chartPanel6 = new ChartPanel(chart6);
     	punkteframe6.setContentPane(chartPanel6);
@@ -369,7 +386,12 @@ public class EmergencyModel extends Model {
     	quantil.add(time);
     }
 
-    public double getTreatmentTime(PatientProcess p, boolean emergency, int treatment) {
+    public double getTreatmentTime(PatientProcess p, boolean emergency, boolean covid, int treatment) {
+    	// time for covid patients, treatment is longer
+    	if (covid) {
+    		return covidTreatmentTime.sample();
+    	}
+    	
     	// time for second treatment is shorter
     	double time = treatment == 0 ? treatmentTime.sample() : secondTreatmentTime.sample();
     	
@@ -384,6 +406,11 @@ public class EmergencyModel extends Model {
     // 20% of all patients are emergencies
     public boolean isEmergency() {
     	return isEmergency.sample() < shareOfEmergencies;
+    }
+    
+    // 5% of all patients possible corona (symptoms fever)
+    public boolean hasCovid() {
+    	return hasCovid.sample() < shareOfCovidPatients;
     }
     
     public static void get90Quantil() {
@@ -436,6 +463,10 @@ public class EmergencyModel extends Model {
     		
     	System.out.println("number of total patients: " + (patientQueue.getObservations() + emergencyQueue.getObservations()));
     	totalPatients.add(run, (patientQueue.getObservations() + emergencyQueue.getObservations()));
+    	
+    	// covid patients
+    	System.out.println("number of covid patients: " + (covidQueue.getObservations()));
+    	System.out.println("max number of waiting covid patients: " + covidQueue.maxLength());
     			
     	System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
     	System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());

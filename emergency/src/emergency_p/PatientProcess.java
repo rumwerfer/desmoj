@@ -12,6 +12,7 @@ public class PatientProcess extends SimProcess {
 	
     private EmergencyModel model;
     private boolean emergency;
+    private boolean covid;
     
     private SimClock patientClock;
     private String name;
@@ -27,57 +28,78 @@ public class PatientProcess extends SimProcess {
     private double waiting1 = 0;
     private double waiting = 0;
     
-    public PatientProcess(Model owner, String name, boolean showInTrace, boolean emergency) {
+    public PatientProcess(Model owner, String name, boolean showInTrace, boolean emergency, boolean covid) {
         super(owner, name, showInTrace);
         model = (EmergencyModel) owner;
         this.setQueueingPriority(emergency ? 3 : 1);
         this.emergency = emergency;
+        this.covid = covid;
         this.name = name;
+        
         patientClock = model.getExperiment().getSimClock(); 
     }
 
     public void lifeCycle() throws SuspendExecution {
     	arrivalTime = patientClock.getTime().getTimeAsDouble();
-
-    	// each patient gets two treatments
-    	for ( treatment = 0; treatment < 2; treatment++) {
-    		
-    		// patient waiting for second treatment enters queue
-		    if (treatment > 0) {
-		    	model.secTreatQueue.insert(this);
-		    	
-    		// emergency patient enters emergency queue
-		    } else if (emergency) {
-    			EmergencyModel.emergencyQueue.insert(this);
-    			
-    		// non-emergency patient enters regular queue
-    		} else {
-                EmergencyModel.patientQueue.insert(this);
-    		}
-    		
-            sendTraceNote("patient queue length: " + (EmergencyModel.patientQueue.length() + EmergencyModel.emergencyQueue.length() + model.secTreatQueue.length()));
-    		
-            Optional<DocProcess> doc = findDoc();
-            
-            // no doc available, wait
-            if (!doc.isPresent()) {
-            	beginWait = patientClock.getTime().getTimeAsDouble();
+    	
+    	if (covid) {
+    		model.covidQueue.insert(this);
+    		// covid doctor is available
+            if (!model.covidDocQueue.isEmpty()) {
+            	
+                CovidDocProcess coviddoc = model.covidDocQueue.removeFirst();
+                coviddoc.activateAfter(this);
+                
+                // patient is being treated
                 passivate();
+                
+            // no doctor is available
+            } else {
+            	beginWait = patientClock.getTime().getTimeAsDouble();
+                passivate();               
             }
-            
-            // doc available, patient does not have to wait
-            else {
-                model.docQueue.remove(doc.get());
-                doc.get().activateAfter(this);
-                passivate(); // patient is being treated
-            }
-                        
-            // write waiting and treatment time of patient to the patient data
-            writePatient(treatment);
-            
-            // change priority after first treatment
-            this.setQueueingPriority(2);
-            sendTraceNote("patient received treatment " + treatment);
+            writePatient(1); // covid patients only enter the covid queue once
+    	} else {
+	    	// each patient gets two treatments
+	    	for ( treatment = 0; treatment < 2; treatment++) {
+	    		
+	    		// patient waiting for second treatment enters queue
+			    if (treatment > 0) {
+			    	model.secTreatQueue.insert(this);
+			    	
+	    		// emergency patient enters emergency queue
+			    } else if (emergency) {
+	    			EmergencyModel.emergencyQueue.insert(this);
+	    			
+	    		// non-emergency patient enters regular queue
+	    		} else {
+	                EmergencyModel.patientQueue.insert(this);
+	    		}
+	    		
+	            sendTraceNote("patient queue length: " + (EmergencyModel.patientQueue.length() + EmergencyModel.emergencyQueue.length() + model.secTreatQueue.length()));
+	    		
+	            Optional<DocProcess> doc = findDoc();
+	            
+	            // no doc available, wait
+	            if (!doc.isPresent()) {
+	            	beginWait = patientClock.getTime().getTimeAsDouble();
+	                passivate();
+	            }
+	            
+	            // doc available, patient does not have to wait
+	            else {
+	                model.docQueue.remove(doc.get());
+	                doc.get().activateAfter(this);
+	                passivate(); // patient is being treated
+	            }
+	                        
+	            // write waiting and treatment time of patient to the patient data
+	            writePatient(treatment);
+	            
+	            // change priority after first treatment
+	            this.setQueueingPriority(2);
+	            sendTraceNote("patient received treatment " + treatment);
+	    	}
     	}
         sendTraceNote("patient leaves emergency room");
     	model.addToQuantil(endTreat - arrivalTime);

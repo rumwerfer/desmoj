@@ -21,7 +21,7 @@ public class NewPatientProcess extends SimProcess {
             hold (new TimeSpan(model.getPatientArrivalTime()));
      
             // create new patient
-            PatientProcess newPatient = new PatientProcess (model, String.valueOf(count), true, model.isEmergency());
+            PatientProcess newPatient = new PatientProcess (model, String.valueOf(count), true, model.isEmergency(), model.hasCovid());
             count++;
             // new patient enters emergency room
             newPatient.activateAfter(this);
