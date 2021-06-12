@@ -25,6 +25,9 @@ public class NewPatientProcess extends SimProcess {
             count++;
             // new patient enters emergency room
             newPatient.activateAfter(this);
+            
+            double hour = (model.getExperiment().getSimClock().getTime().getTimeAsDouble() / 60 ) % 24;
+            model.logArrivalHour(hour);
         }
     }
 

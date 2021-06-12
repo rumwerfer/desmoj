@@ -87,6 +87,8 @@ public class EmergencyModel extends Model {
    	
    	private static XYSeries totalPatients = new XYSeries("number of total patients");
    	
+   	private static ArrayList<Double> arrivalHours = new ArrayList<Double>();
+   	
    	private static long genRandom() {
    		Random random = new Random();
    		long value = random.nextLong();
@@ -323,6 +325,23 @@ public class EmergencyModel extends Model {
     	punkteframe5.pack();
     	punkteframe5.setVisible(true);
     	//**********************************************************************
+    	
+    	//******************Histogram********************************
+    	// Historgram for arrival time per hour
+    	double[] hourArray = arrivalHours.stream().mapToDouble(i -> i).toArray();
+    	HistogramDataset dataset6 = new HistogramDataset();
+    	dataset6.addSeries("Number of patients", hourArray, 23, 0, 23);
+   	
+    	JFreeChart chart6 = ChartFactory.createHistogram(
+    			"Histogram for arrival time per hour", "hour of day","number of patients",
+    			dataset6, PlotOrientation.VERTICAL, true, true, false);
+    	ApplicationFrame punkteframe6 = new ApplicationFrame("histogram mean waiting time both patient groups"); 
+
+    	ChartPanel chartPanel6 = new ChartPanel(chart6);
+    	punkteframe6.setContentPane(chartPanel6);
+    	punkteframe6.pack();
+    	punkteframe6.setVisible(true);
+    	//**********************************************************************
 	}
 	
     public double getPatientArrivalTime() {
@@ -377,6 +396,10 @@ public class EmergencyModel extends Model {
     		quantil90 = quantil.get(result);
     	else
     		quantil90 = 0.0;
+    }
+    
+    void logArrivalHour(double hour) {
+    	arrivalHours.add(hour);
     }
     
     public static void printStatistics(int run) {
