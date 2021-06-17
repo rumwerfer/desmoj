@@ -16,6 +16,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -77,6 +78,17 @@ public class EmergencyModel extends Model {
    	private int numDocs = 2;
    	private int numPeakDocs = 3;
    	private int numOffPeakDocs = 1;
+   	private static double avgrunsmaxregwait = 0;
+   	private static double avgrunsmaxemwait = 0;
+   	private static double avgrunsavgregwait = 0;
+   	private static double avgrunsavgemwait = 0;
+   	private static double avgrunsmeanwait = 0;
+   	private static double avgrunsnonwait = 0;
+   	private static double avgrunsless5wait = 0;
+   	private static double avgruns90quantile = 0;
+   	private static double avgrundead = 0;
+   	private static double avgruncovid = 0;
+   	private static double avgruncovwait = 0;
    	
    	private static XYSeries maxNumberWaitingRegular = new XYSeries("max. number of waiting regular patients");
    	private static XYSeries maxNumberWaitingEmergency = new XYSeries("max. number of waiting emergency patients");
@@ -187,7 +199,7 @@ public class EmergencyModel extends Model {
     }
 	
 	public static void main(String[] args) {
-		int runs = 20;
+		int runs = 50;
 		
 		meanWaiting = new double[runs];
 		
@@ -241,6 +253,7 @@ public class EmergencyModel extends Model {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
 		}
 		
 		//*******************Diagrams****************************************
@@ -330,12 +343,14 @@ public class EmergencyModel extends Model {
     	//******************Histogram********************************
     	// Historgram for mean waiting time both patient groups
     	HistogramDataset dataset5 = new HistogramDataset();
-    	dataset5.addSeries("Test", meanWaiting, 60, 0, 300);
+    	dataset5.addSeries("runs", meanWaiting, 60, 0, 300);
    	
     	JFreeChart chart5 = ChartFactory.createHistogram(
     			"Histogram for mean waiting time of both patient groups", "mean waiting time in minutes","number of runs",
     			dataset5, PlotOrientation.VERTICAL, true, true, false);
-    	ApplicationFrame punkteframe5 = new ApplicationFrame("histogram mean waiting time both patient groups"); 
+    	chart5.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+    	ApplicationFrame punkteframe5 = new ApplicationFrame("histogram mean waiting time both patient groups");
+    	
 
     	ChartPanel chartPanel5 = new ChartPanel(chart5);
     	punkteframe5.setContentPane(chartPanel5);
@@ -347,10 +362,10 @@ public class EmergencyModel extends Model {
     	// Historgram for arrival time per hour
     	double[] hourArray = arrivalHours.stream().mapToDouble(i -> i).toArray();
     	HistogramDataset dataset6 = new HistogramDataset();
-    	dataset6.addSeries("Number of patients", hourArray, 24, 0, 24);
+    	dataset6.addSeries("patients", hourArray, 24, 0, 24);
    	
     	JFreeChart chart6 = ChartFactory.createHistogram(
-    			"Histogram for arrival time per hour \n after 20 runs after 20 days", "hour of day","number of patients",
+    			"Histogram for arrival time per hour \n after " + runs + " runs after 22 days", "hour of day","number of patients",
     			dataset6, PlotOrientation.VERTICAL, true, true, false);
     	ApplicationFrame punkteframe6 = new ApplicationFrame("histogram for arrival timer per hour"); 
 
@@ -359,6 +374,30 @@ public class EmergencyModel extends Model {
     	punkteframe6.pack();
     	punkteframe6.setVisible(true);
     	//**********************************************************************
+    	System.out.println();
+    	System.out.println("**************** average results after " + runs + " runs ************************");
+    	
+    	System.out.println("average of max. number of waiting regular patients, after " + runs + " runs: " + avgrunsmaxregwait/runs + " patients");
+    	System.out.println("average of max. number of waiting emergency patients, after " + runs + " runs: "+ avgrunsmaxemwait/runs + " emergency patients");
+    	System.out.println("average of avg. number of waiting regular patients, after " + runs + " runs: " + avgrunsavgregwait/runs + " patients");
+    	System.out.println("average of avg. number of waiting emergency patients, after " + runs + " runs: " + avgrunsavgemwait/runs + " emergency patients");
+   	
+    	// mean waiting time of both groups
+    	System.out.println("average of mean waiting time of both patient groups, after " + runs + " runs: " + avgrunsmeanwait/runs + " minutes");
+    			
+    	// number of non-waiting patients and less-than-5-min-waiting patients
+    	System.out.println("average of number of non-waiting patients, after " + runs + "runs: "+ avgrunsnonwait/runs + " patients");
+    	System.out.println("average of number of patients with waiting time <= 5, after " + runs + " runs: " + avgrunsless5wait/runs + " patients");
+    			
+    	// 90% quantiles
+    	System.out.println("average 90%-Quantile, after " + runs + " runs: " + avgruns90quantile/runs + " minutes");
+    			
+    	System.out.println("average of number of emergency patients who would be dead, after " + runs + " runs: " + avgrundead/runs + " patients"); 		
+   	
+    	// covid patients
+    	System.out.println("average of number of covid patients, after " + runs + " runs: " + avgruncovid/runs + " patients");
+    	System.out.println("average of max number of waiting covid patients, after " + runs + " runs: " + avgruncovwait/runs + " patients");
+
 	}
 	
     public double getPatientArrivalTime() {
@@ -436,37 +475,48 @@ public class EmergencyModel extends Model {
     	// max and avg number of waiting patients of both groups
     	System.out.println("max. number of waiting regular patients: " + patientQueue.maxLength() + " patients");
     	maxNumberWaitingRegular.add(run, patientQueue.maxLength());
+    	avgrunsmaxregwait += patientQueue.maxLength();
     	System.out.println("max. number of waiting emergency patients: " + emergencyQueue.maxLength() + " emergency patients");
     	maxNumberWaitingEmergency.add(run, emergencyQueue.maxLength());
+    	avgrunsmaxemwait += emergencyQueue.maxLength();
     	System.out.println("avg. number of waiting regular patients: " + patientQueue.averageLength() + " patients");
     	avgNumberWaitingRegular.add(run, patientQueue.averageLength());
+    	avgrunsavgregwait += patientQueue.averageLength();
     	System.out.println("avg. number of waiting emergency patients: " + emergencyQueue.averageLength() + " emergency patients");
     	avgNumberWaitingEmergency.add(run, emergencyQueue.averageLength());
+    	avgrunsavgemwait += emergencyQueue.averageLength();
     	
     	// mean waiting time of both groups
     	System.out.println("mean waiting time of both patient groups: " + tallyWaiting.getMean() + " minutes");
     	meanWaitingTimeBoth.add(run, tallyWaiting.getMean());
     	meanWaiting[run] = tallyWaiting.getMean();
+    	avgrunsmeanwait += tallyWaiting.getMean();
     			
     	// number of non-waiting patients and less-than-5-min-waiting patients
     	System.out.println("number of non-waiting patients: " + countOfNonWaitingPatients.getValue() + " patients");
     	nonWaiting.add(run, countOfNonWaitingPatients.getValue());
+    	avgrunsnonwait += countOfNonWaitingPatients.getValue();
     	System.out.println("number of patients with waiting time <= 5: " + countOfMaxFiveMinWaitingTime.getValue() + " patients");
     	less5Waiting.add(run, countOfMaxFiveMinWaitingTime.getValue());
+    	avgrunsless5wait += countOfMaxFiveMinWaitingTime.getValue();
     			
     	// 90% quantiles
     	System.out.println("90%-Quantile : " + quantil90 + " minutes");
     	quantile90Percent.add(run, quantil90);
+    	avgruns90quantile += quantil90;
     			
     	System.out.println("number of emergency patients who would be dead: " + countOfDeadPatients.getValue() + " patients");
     	deadPatients.add(run, countOfDeadPatients.getValue());
+    	avgrundead += countOfDeadPatients.getValue();
     		
     	System.out.println("number of total patients: " + (patientQueue.getObservations() + emergencyQueue.getObservations()));
     	totalPatients.add(run, (patientQueue.getObservations() + emergencyQueue.getObservations()));
     	
     	// covid patients
     	System.out.println("number of covid patients: " + (covidQueue.getObservations()));
+    	avgruncovid += covidQueue.getObservations();
     	System.out.println("max number of waiting covid patients: " + covidQueue.maxLength());
+    	avgruncovwait += covidQueue.maxLength();
     			
     	System.out.println("max. waiting time of emergency patients: " + tallyWaitingEmergency.getMaximum());
     	System.out.println("max. waiting time of regular patients: " + tallyWaitingRegular.getMaximum());
