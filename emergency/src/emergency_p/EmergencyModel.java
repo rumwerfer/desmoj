@@ -203,7 +203,6 @@ public class EmergencyModel extends Model {
 		
 		meanWaiting = new double[runs];
 		
-		
 		for (int index = 0; index < runs; index++) {
 			Experiment emergencyExp = new Experiment("emergency");
 			EmergencyModel emergencyModel = new EmergencyModel(null, "emergency model", true, true);  
@@ -349,8 +348,8 @@ public class EmergencyModel extends Model {
     			"Histogram for mean waiting time of both patient groups", "mean waiting time in minutes","number of runs",
     			dataset5, PlotOrientation.VERTICAL, true, true, false);
     	chart5.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-    	ApplicationFrame punkteframe5 = new ApplicationFrame("histogram mean waiting time both patient groups");
-    	
+    	ApplicationFrame punkteframe5 = new ApplicationFrame("histogram mean waiting time both patient groups"); 
+
 
     	ChartPanel chartPanel5 = new ChartPanel(chart5);
     	punkteframe5.setContentPane(chartPanel5);
