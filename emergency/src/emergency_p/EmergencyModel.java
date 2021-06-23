@@ -443,7 +443,7 @@ public class EmergencyModel extends Model {
     	return emergency ? time * emergencyTimeFactor : time;
     }
     
-    public double getDeathTime() {
+    double getDeathTime() {
     	return minDeathTime + deathTime.sample();
     }
     
