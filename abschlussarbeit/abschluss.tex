@@ -1,0 +1,135 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Einführung Simulation PS-Aufgabe 2021:\\Notaufnahme}
+\author{Sofia Bonini, Dario Leon Hornsteiner, Sabine Daniela Hasenleithner}
+\date{\today}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+
+\maketitle
+
+\section{Anforderungen an das Simulationsprojekt mit integrierten Erweiterungen}
+Die Aufgabe war es eine Notaufnahme eines Krankenhauses zu simulieren. In der Notaufnahme des Krankenhauses erscheint durchschnittlich alle 40 Minuten ein Patient, wobei tagsüber immer zwei Ärzte und nachts ein Arzt im Einsatz sind. Jeder Patient muss eine Erst- und eine Zweit-Behandlung durchleben, bevor er das Krankenhaus verlässt. Ein Ausnahmefall besteht, wenn der Patient ein Notfallpatient ist und die Wartezeit in der Schlange so lange andauert, dass er noch in der Warteschlange verstirbt.\\
+Etwa 20\% der Patienten müssen möglichst rasch behandelt werden und werden als akute Notfälle eingestuft, der Rest wird als regulärer Patient in die Warteschlange eingelassen und kann länger warten. Es gibt noch eine dritte Kategorie der Patienten, die die Covid-19-Verdachtsfälle darstellen (ca. 5\%). Bevor die Patienten das Krankenhaus betreten, wird durch eine Fiebermessstation überprüft, ob es sich um einen Covid-Verdachtsfall handelt, wenn ja wird dieser umgehend zu einer gesonderten Warteschlange weitergeleitet, um die sich ein eigener Arzt kümmert und immer 10 Minuten zwischen den Behandlungen die Station desinfiziert.\\
+Den akuten Notfällen wird die Priorität 3 zugeordnet, dann Reduktion der Priorität auf 2. Hier warten die Patienten nun bis wieder ein Arzt verfügbar ist, um nochmals behandelt zu werden, vor Verlassen der Notaufnahme. Jenen Patienten, die warten können wird Priorität 1 zugeordnet und erhalten dann ebenfalls Priorität 2, zur Zweitbehandlung, danach verlassen auch diese die Notaufnahme.\\
+\\
+Das Experiment simuliert 20 Tage, denen 2 Tage Initialisierung (Warm-UP Phase) davor angehängt werden. Somit werden insgesamt 22 Tage simuliert. Zusätzlich werden 50 sogenannter 'Runs' durchgeführt, um ein möglichst akkurates Ergebnis zu erhalten.\\
+
+
+\subsection{Zu ermittelnde Werte}
+\begin{itemize}
+    \item jeweils maximale und mittlere Anzahl der wartenden akuten Notfälle und restlichen Patienten
+    \item die mittlere Wartezeit beider Patientenarten
+    \item Anteil jener Patienten, die nicht warten müssen
+    \item Anteil der Patienten, welche maximal 5 Minuten warten müssen
+    \item jene Zeit x, sodass 90\% der Patienten maximal x Zeiteinheiten in der Notaufnahme verbringen (vom Eintreffen bis zum Verlassen nach Behandlungsende) - genannt 90\%-Quantile
+    \item Anzahl der Notfall-Patienten. die bereits in der Warteschlange sterben
+    \item Ankunftszeiten des Tag/ Nacht Zyklus
+\end{itemize}
+
+\section{Implementierung}
+Es wurde ein prozessorientierter Ansatz in der Implementierung verfolgt, da so die Abbildung aktiver und passiver Phasen von Komponenten näher an der Realität sind, also besser darstellbar sind.\\
+Die Implementierung umfasst folgende Klassen:\\\\
+%%%%%%%%%--------------------------Patient Process------------------------------%%%%%%%%%%%
+\textbf{PatientProcess}
+\begin{itemize}
+    \item TODO
+\end{itemize}
+\includegraphics[width=\textwidth]{img/patientProcess.png}
+\textit{Vereinfachte Version des 'LifeCycle' des PatientProcess}
+%%%%%%%%%-------------------------- New Patient Process------------------------------%%%%%%%%%%%
+\textbf{NewPatientProcess}
+\begin{itemize}
+    \item erstellt einen neuen Patienten, der in die Warteschlange eingereiht wird
+    \item TODO
+\end{itemize}
+\begin{center}
+\includegraphics[scale=0.8]{img/newPatientProcess.png} \\
+\textit{Vereinfachte Version des 'LifeCycle' des NewPatientProcess}
+\end{center}
+%%%%%%%%%--------------------------Doc Process------------------------------%%%%%%%%%%%
+\textbf{DocProcess}
+\begin{itemize}
+    \item TODO
+\end{itemize}
+\includegraphics[width=\textwidth]{img/docProcess.png}
+\textit{Vereinfachte Version des 'LifeCycle' des DocProcess}
+%%%%%%%%%--------------------------Emergency Model------------------------------%%%%%%%%%%%
+\textbf{EmergencyModel}
+\begin{itemize}
+    \item In dieser Klasse befinden sich die \textit{main-method} und die Initialisierungsmethoden, sowie jene die zur Darstellung der Werte mit JFree benötigt werden
+\end{itemize}
+%%%%%%%%%--------------------------Covid Doc Process------------------------------%%%%%%%%%%%
+\textbf{CovidDocProcess}
+\begin{itemize}
+    \item Prozess des Covid Arztes, der nur die Verdachtsfälle behandelt
+    \item analog zum DocProcess, nur dass er noch 10 Minuten nach jeder Behandlung seine Station desinfizieren muss
+    \item befindet sich in eigener Queue
+\end{itemize}
+
+\section{Simulationsergebnisse}
+\subsection{Durchschnittliche Werte nach 50 runs (ca. 720 patients)}
+Es wurden 50 Durchläufe zu je 22 Tagen (2 Tage Initialisierungsphase + 20 Tage Beobachtungszeitraum) gewählt, um Aussagekräftige Werte zu erhalten.\\
+\begin{center}
+\includegraphics[scale=0.35]{img/avg_waiting.png}\\
+\textit{Durchschnittliche Wartezeit bei allen Patientengruppen}\\
+\end{center}
+Wie schon anhand der Durschnittlichen Wartezeiten absehbar, sind diese teilweise sehr unterschiedlich bei den verschiedenen Durchgängen (also im Wertebereich zwischen ca. 40 und 170 Minuten).
+.\\
+\begin{center}
+\includegraphics[scale=0.4]{img/avg_wait_histogram.png}\\
+\textit{Histogramm: Durchschnittliche Wartezeit bei allen Patientengruppen}\\
+\end{center}
+Anhand des Histogramms zu diesen Durschnittswartezeiten sieht man aber die ungefähre Normalverteilung dieser Werte, weshalb hiermit schon Aussagen getroffen werden können.
+.\\
+\begin{center}
+\includegraphics[scale=0.4]{img/quantile.png}\\
+\textit{90\% Quantile}\\
+\end{center}
+Die 90\% Quantile soll hier die gesamte Aufenthaltsdauer in der Notaufnahme wiederspiegeln und erreicht ihr Maximum bei den 50 Durchläufen bei ca. 450 Minuten was in etwa 7.5 Stunden entspricht. Dieser Wert scheint durchaus realistisch.
+.\\
+\begin{center}
+\includegraphics[scale=0.4]{img/day_night.png}\\
+\textit{Ankunftszeit der Patienten über den Tag, um des Tag/Nacht Zyklus ersichtlich zu machen}
+\end{center}
+.\\
+\begin{center}
+\includegraphics[scale=0.4]{img/max_avg_patients.png}\\
+\textit{Maximale und durchschnittliche Wartezeit jeweils der Notfallpatienten und der regulären Patienten}\\
+\end{center}
+Wichtig hier ist, dass die Maximale Anzahl an wartenden Notfallpatienten niemals die der regulär wartenden Patienten übersteigt. Was deutlich ersichtlich ist. Interessant allerdings auch, ist dass die maximale Anzahl an regulär und Notfall-Patienten nicht unbedingt abhängig voneinander scheint, sondern eher zufällig. Die Durschnittliche Anzahl der wartenden Notfallpatienten scheint sehr gering und übersteigt niemals den Wert 1.
+.\\
+\begin{center}
+\includegraphics[scale=0.4]{img/not_less_waiting.png}\\
+\textit{Anzahl der nicht-wartenden Patienten zusammen mit denen die weniger als 5 Minuten warten müssen, Anzahl der Patienten die in der Warteschlange verstorben wären und gesamte Anzahl der Patienten}\\
+\end{center}
+Verglichen mit der totalen Anzahl an Patienten ist die Anzahl derer die gar nicht oder weniger als 5 Minuten warten müssen nicht so schlecht. Also Anteil wäre hier ca. 30\% bei Patienten die weniger als 5 Minuten warten müssen und ca. 25\% die Patienten die gar nicht warten müssen. Hier wird die gesamte Wartezeit herangezogen, also es werden die Wartezeiten von Erst- und Zweitbehandlung aufsummiert. \\
+.\\
+
+\begin{tabular}{|l|l|}
+\hline
+\textbf{average of...} & \textbf{values}\\ \hline
+max. number of waiting regular patients & 12.92 patients  \\ \hline
+max. number of waiting emergency patients & 3.46 patients  \\ \hline
+avg. number of waiting regular patients & 1.69 patients  \\ \hline
+avg. number of waiting emergency patients & 0.21 patients  \\ \hline
+mean waiting time of both patient groups & 100.80 minutes  \\ \hline
+number of non-waiting patients & 212.22 patients  \\ \hline
+number of patients with waiting time <= 5 & 255.82 patients  \\ \hline
+90\%-Quantile & 397.99 minutes  \\ \hline
+number of emergency patients who would be dead & 20.84 patients  \\ \hline
+number of covid patients & 37.26 patients  \\ \hline
+max number of waiting covid patients & 1.12 patients  \\ \hline
+\end{tabular}\\
+\begin{center}
+\textit{Duchschnittliche Werte nach 50 runs}\\
+\end{center}
+Über alle Durchläufe gesprochen scheinen die Werte verglichen zu einer Notaufnahme relativ gut. Die Maximale Anzahl an wartenden regulären Patienten ist mit ca. 13 Patienten nicht schlecht. Wobei die Anzahl der wartenden Notfallpatienten mi 4 Patienten durch Erhöhung der Ärzteanzahl vielleicht verbessert werden sollte. Wäre hier eine Umsetzung auf eine reale Notfallaufnahme geplant. Auch die Anzahl der möglichen Todesfälle würde mit ca. 21 Patienten bestätigen, dass hier noch dringend mehr Ärzte eingestellt werden müssten. \\
+Allerdings würde die Behandlung der potentiellen COVID Verdachtsfälle passen. Hier befindet sich kaum mehr als 1 Patient in der Warteschlange. Dh. die Gefahr, dass eine mit COVID Infizierte Person eine nicht infizierte Verdachtsperson ansteckt, ist sehr gering.
+
+\end{document}
+
