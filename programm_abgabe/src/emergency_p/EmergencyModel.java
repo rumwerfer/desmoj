@@ -27,6 +27,13 @@ import desmoj.core.dist.*;
  * This Experiment shall simulate an emergency room
  * This class initiates, defines and handles the Experiment and has the main function in it
  * in the course of "Simulation" topic
+ * JFREE is used in this project: https://www.jfree.org/
+ * implemented as described in this tutorial: https://www.mathematik.hu-berlin.de/~ccafm/teachingBasic/allg/JAVA_Pakete/JFreeChart/JFreeChart-Tutorial.html
+ * download package here: https://sourceforge.net/projects/jfreechart/files/
+ * right click Java Project, Configure Build Path -> Add Library -> Add External JARs -> select from jfreechart-1.0.19/lib/ following three files:
+ * jfreechart-1.0.19.jar 
+ * jfreechart-1.0.19-experimental.jar 
+ * jcommon-1.0.23.jar
  * 
  * @author Sofia Bonini, Dario Hornsteiner, Sabine Hasenleithner
  */
