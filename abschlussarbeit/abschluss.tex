@@ -113,62 +113,100 @@ Die Unterschiede sind, dass der Arzt lediglich die Warteschlange für COVID-Pati
 
 Die Behandlungszeit für COVID-Patienten beträgt 15-60 Minuten (für sie gibt es keine Zweitbehandlung).
 
-Im \texttt{EmergencyModel} gibt es eine eigene Warteschlange für den Covid-Arzt.
+Im \texttt{EmergencyModel} gibt es zudem eine eigene Warteschlange für den Covid-Arzt.
 
-\includegraphics[width=\textwidth]{img/docProcess.png}
+\includegraphics[scale=0.6]{img/docProcess.png} \\
 \textit{Vereinfachte Version des 'LifeCycle' des DocProcess}
 
 \subsection{EmergencyModel}
-\begin{itemize}
-    \item TODO
-    \item In dieser Klasse befinden sich die \textit{main-method} und die Initialisierungsmethoden, sowie jene die zur Darstellung der Werte mit JFree benötigt werden
-\end{itemize}
+
+Im \texttt{Model} werden vor Beginn der Simulation Instanzen der Patienten- und Ärzte-Prozesse erstellt und aktiviert und die jeweiligen Warteschlangen erstellt.
+Zudem beinhaltet die Model-Klasse die Zufallsverteilungen, die für das Festlegen von Ankunfts- und Behandlungszeiten sowie COVID-Verdachtsfällen und Notfällen verwendet werden, sowie Methoden, die zur Darstellung der Werte mit \texttt{JFree} benötigt werden.
+
+In der \textit{main}-Methode werden 50 Durchläufe der Simulation durchgeführt.
 
 \subsection{Erweiterung: Stoßzeiten}
-... TODO
+
+Laut Anforderung soll durchschnittlich alle 40 Minuten ein Patient die Notaufnahme betreten.
+Das entspricht durchschnittlich 36 Patienten pro Tag.
+Allerdings ist es nicht realistisch, dass zu jeder Tageszeit gleich viele Patienten auftreten.
+Vielmehr gibt es in der Realität Stoßzeiten.
+Anhand der Daten eines deutschen Krankenhauses lässt sich eine Kurve mit zwei Peaks beobachten:\footnote{Heller, A.R. \& Juncken, K.: Primärversorgung in der Zentralen Notaufnahme. Anästhesiologie und Intensivmedizin\textit{2020}, 61:164-176. doi:10.19224/ai2020.164} \\
+
+\includegraphics[width=\textwidth]{img/arrival_times.png}\\
+\textit{Verteilung des Patienten-Tagesaufkommens in der Notaufnahme eines deutschen Krankenhauses} \\
+
+Diese zeitliche Verteilung lässt sich ohne allzu großen Informationsverlust in zwei Phasen einteilen: eine Stoßzeit zwischen 10 Uhr und 22 Uhr, und eine Ruhezeit zwischen 22 Uhr und 10 Uhr.
+Umgerechnet auf 36 Patienten pro Tag ergeben sich aus diesen Daten gerundet durchschnittliche Ankunftszeiten von 25 Minuten tagsüber und 100 Minuten nachts.
+Um diese Ankunftszeiten zu erreichen, wurde die Methode \texttt{EmergencyModel.getPatientArrivalTime()} so angepasst, dass sie nachts und tagsüber Werte aus unterschiedlichen Verteilungen zieht.
+Der daraus folgende Patientenstrom wird in Abschnitt 3 gezeigt.
+
+Um auf den veränderten Patientenstrom zu reagieren, wurden zudem Schichten für die Ärzte eingeführt.
+Dabei arbeiten tagsüber drei Ärzte und nachts einer, sodass dieselben Arbeitsstunden wie zuvor geleistet werden.
+Dem \texttt{DocProcess} werden dazu im Konstruktor Schichtbeginn und -ende übergeben und als Instanzvariablen gespeichert.
+
+Nach jeder Behandlung sieht der Arzt auf die Uhr und versetzt sich gegebenenfalls selbst in den Ruhezustand.
+Dazu wird die Methode \texttt{restIfShiftOver()} verwendet, in der überprüft wird, ob das Schichtende bereits erreicht ist und der Arzt gegebenenfalls bis zum Schichtbeginn in den Ruhezustand versetzt wird.
+So werden jedoch nur die Ärzte erreicht, deren Schichtende während einer Behandlung eintrifft.
+Ärzte, die sich in der Warteschlange befinden, während ihr Schichtende eintritt, müssen daher vom sie aktivierenden Patienten \glqq in den Feierabend geschickt\grqq{} werden.
+Dazu wurde die Methode \texttt{PatientProcess.findDoc()} so angepasst, dass zunächst immer die \texttt{restIfShiftOver()}-Methode des jeweiligen Arztes aufgerufen wird.
+
+Die Erweiterung lässt sich mit dem Flag \texttt{peakHoursExtension} ein- und ausschalten.
 
 \subsection{Erweiterung: Todesfälle}
-... TODO
+
+Zusätzlich wurde eingeführt, dass Notfallpatienten nach einer gewissen Wartezeit ohne Erstbehandlung sterben.
+Um möglichst realitätsgetreu zu bleiben, wird für die \glqq Todeszeit\grqq{} eine Exponentialverteilung verwendet, negative Werte verhindert und die minimale Todeszeit im Anschluss hinzuaddiert.
+So liefert \texttt{EmergencyModel.getDeathTime()} Zeiten von durchschnittlich 30 Minuten, jedoch nie unter 15 Minuten.
+Beim Entfernen eines Patienten aus der Warteschlange vergleicht der Arzt zunächst dessen Wartezeit mit der \glqq Todeszeit\grqq{}, bevor er den Tod feststellt oder den Patienten behandelt.
 
 \section{Simulationsergebnisse}
-\subsection{Durchschnittliche Werte nach 50 runs (ca. 720 patients)}
-Es wurden 50 Durchläufe zu je 22 Tagen (2 Tage Initialisierungsphase + 20 Tage Beobachtungszeitraum) gewählt, um Aussagekräftige Werte zu erhalten.\\
+
+Es wurden 50 Durchläufe zu je 22 Tagen (2 Tage Initialisierungsphase + 20 Tage Beobachtungszeitraum) gewählt, um aussagekräftige Werte zu erhalten. Dabei betreten insgesamt etwa 720 Patienten die Notaufnahme.\\
 \begin{center}
 \includegraphics[scale=0.35]{img/avg_waiting.png}\\
 \textit{Durchschnittliche Wartezeit bei allen Patientengruppen}\\
 \end{center}
+\vspace{\baselineskip}
 Wie schon anhand der Durschnittlichen Wartezeiten absehbar, sind diese teilweise sehr unterschiedlich bei den verschiedenen Durchgängen (also im Wertebereich zwischen ca. 40 und 170 Minuten).
-.\\
+
 \begin{center}
 \includegraphics[scale=0.4]{img/avg_wait_histogram.png}\\
 \textit{Histogramm: Durchschnittliche Wartezeit bei allen Patientengruppen}\\
+\vspace{\baselineskip}
 \end{center}
 Anhand des Histogramms zu diesen Durschnittswartezeiten sieht man aber die ungefähre Normalverteilung dieser Werte, weshalb hiermit schon Aussagen getroffen werden können.
-.\\
+
 \begin{center}
 \includegraphics[scale=0.4]{img/quantile.png}\\
 \textit{90\% Quantile}\\
 \end{center}
+\vspace{\baselineskip}
 Die 90\% Quantile soll hier die gesamte Aufenthaltsdauer in der Notaufnahme wiederspiegeln und erreicht ihr Maximum bei den 50 Durchläufen bei ca. 450 Minuten was in etwa 7.5 Stunden entspricht. Dieser Wert scheint durchaus realistisch.
-.\\
+
 \begin{center}
 \includegraphics[scale=0.4]{img/day_night.png}\\
 \textit{Ankunftszeit der Patienten über den Tag, um des Tag/Nacht Zyklus ersichtlich zu machen}
 \end{center}
-.\\
+\vspace{\baselineskip}
+
 \begin{center}
 \includegraphics[scale=0.4]{img/max_avg_patients.png}\\
 \textit{Maximale und durchschnittliche Wartezeit jeweils der Notfallpatienten und der regulären Patienten}\\
 \end{center}
+\vspace{\baselineskip}
 Wichtig hier ist, dass die Maximale Anzahl an wartenden Notfallpatienten niemals die der regulär wartenden Patienten übersteigt. Was deutlich ersichtlich ist. Interessant allerdings auch, ist dass die maximale Anzahl an regulär und Notfall-Patienten nicht unbedingt abhängig voneinander scheint, sondern eher zufällig. Die Durschnittliche Anzahl der wartenden Notfallpatienten scheint sehr gering und übersteigt niemals den Wert 1.
-.\\
+
 \begin{center}
 \includegraphics[scale=0.4]{img/not_less_waiting.png}\\
 \textit{Anzahl der nicht-wartenden Patienten zusammen mit denen die weniger als 5 Minuten warten müssen, Anzahl der Patienten die in der Warteschlange verstorben wären und gesamte Anzahl der Patienten}\\
 \end{center}
-Verglichen mit der totalen Anzahl an Patienten ist die Anzahl derer die gar nicht oder weniger als 5 Minuten warten müssen nicht so schlecht. Also Anteil wäre hier ca. 30\% bei Patienten die weniger als 5 Minuten warten müssen und ca. 25\% die Patienten die gar nicht warten müssen. Hier wird die gesamte Wartezeit herangezogen, also es werden die Wartezeiten von Erst- und Zweitbehandlung aufsummiert. \\
-.\\
+\vspace{\baselineskip}
 
+Verglichen mit der totalen Anzahl an Patienten ist die Anzahl derer die gar nicht oder weniger als 5 Minuten warten müssen nicht so schlecht. Also Anteil wäre hier ca. 30\% bei Patienten die weniger als 5 Minuten warten müssen und ca. 25\% die Patienten die gar nicht warten müssen. Hier wird die gesamte Wartezeit herangezogen, also es werden die Wartezeiten von Erst- und Zweitbehandlung aufsummiert. \\
+
+
+\vspace{\baselineskip}
 \begin{tabular}{|l|l|}
 \hline
 \textbf{average of...} & \textbf{values}\\ \hline
@@ -187,6 +225,8 @@ max number of waiting covid patients & 1.12 patients  \\ \hline
 \begin{center}
 \textit{Duchschnittliche Werte nach 50 runs}\\
 \end{center}
+\vspace{\baselineskip}
+
 Über alle Durchläufe gesprochen scheinen die Werte verglichen zu einer Notaufnahme relativ gut. Die Maximale Anzahl an wartenden regulären Patienten ist mit ca. 13 Patienten nicht schlecht. Wobei die Anzahl der wartenden Notfallpatienten mi 4 Patienten durch Erhöhung der Ärzteanzahl vielleicht verbessert werden sollte. Wäre hier eine Umsetzung auf eine reale Notfallaufnahme geplant. Auch die Anzahl der möglichen Todesfälle würde mit ca. 21 Patienten bestätigen, dass hier noch dringend mehr Ärzte eingestellt werden müssten. \\
 Allerdings würde die Behandlung der potentiellen COVID Verdachtsfälle passen. Hier befindet sich kaum mehr als 1 Patient in der Warteschlange. Dh. die Gefahr, dass eine mit COVID Infizierte Person eine nicht infizierte Verdachtsperson ansteckt, ist sehr gering.
 
