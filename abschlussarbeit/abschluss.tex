@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
 
 \title{Einführung Simulation PS-Aufgabe 2021:\\Notaufnahme}
 \author{Sofia Bonini, Dario Leon Hornsteiner, Sabine Daniela Hasenleithner}
@@ -32,44 +33,102 @@ Das Experiment simuliert 20 Tage, denen 2 Tage Initialisierung (Warm-UP Phase) d
 \end{itemize}
 
 \section{Implementierung}
-Es wurde ein prozessorientierter Ansatz in der Implementierung verfolgt, da so die Abbildung aktiver und passiver Phasen von Komponenten näher an der Realität sind, also besser darstellbar sind.\\
-Die Implementierung umfasst folgende Klassen:\\\\
-%%%%%%%%%--------------------------Patient Process------------------------------%%%%%%%%%%%
-\textbf{PatientProcess}
-\begin{itemize}
-    \item TODO
-\end{itemize}
+
+Es wurde ein prozessorientierter Ansatz in der Implementierung verfolgt, da so die Abbildung aktiver und passiver Phasen von Komponenten näher an der Realität sind, also besser darstellbar sind. Die jeweiligen Komponenten wurden deshalb in Unterklassen der von DESMO-J zur Verfügung gestellten abstrakten Klasse \texttt{SimProcess} umgesetzt.
+
+Die Implementierung umfasst folgende Klassen:
+
+\subsection{PatientProcess}
+Dem Konstruktor der Klasse \texttt{PatientProcess} werden zwei Booleans übergeben,
+die definieren, ob der entsprechende Patient ein Notfall-Patient ist und ob er ein COVID-Verdachtsfall ist.
+
+Der Lebenszyklus eines Patienten beginnt mit dem Betreten der Notaufnahme.
+In der Praxis wird hier die Körpertemparatur gemessen und bei erhöhter Temparatur wird der Patient als COVID-Verdachtsfall eingestuft.
+In der Simulation gilt einfach ein gewisser Prozentsatz der Patienten (5\%) als COVID-Verdachtsfall.
+Um COVID-Verdachtsfälle zu isolieren, wird eine separate Station simuliert (durch eigene Warteschlange und Personal, siehe \textit{CovidDocProcess}).
+Um die Ansteckungsgefahr im Warteraum weiter zu reduzieren,
+wird bei COVID-Verdachtsfällen die Erst- und Zweitbehandlung direkt im Anschluss aneinander durchgeführt.
+
+Für Patienten ohne erhöhte Temperatur gibt es beim Betreten der Notaufnahme zwei Möglichkeiten:
+Wenn gerade ein Arzt verfügbar ist, kann der Patient direkt behandelt werden.
+Ansonsten muss er warten.
+Dies wird in der Simulation allerdings so umgesetzt,
+dass der Patient in jedem Fall in die entsprechende Warteschlange
+(für Notfall- oder normale Patienten) eingefügt wird,
+und wenn ein Arzt verfügbar ist, dieser den Patienten sofort wieder herausnimmt.
+Um herauszufinden, ob ein Arzt verfügbar ist, verwendet der Patient die Methode \texttt{findDoc()},
+in der ein Arzt, wenn verfügbar,
+aus der Ärzte-Warteschlange des \texttt{EmergencyModel} herausgenommen wird und im Anschluss aktiviert werden kann.
+
+Nach der Erstbehandlung wiederholt sich dieser Prozess, indem der Patient in eine eigene Warteschlange für Zweitbehandlungen eingereiht wird (Priorität zwischen Notfällen und normalen Erstbehandlungen) und je nach Verfügbarkeit eines Arztes noch einmal auf seine Behandlung warten muss. Nach der Zweitbehandlung verlässt der Patient die Notaufnahme.\\
+
 \includegraphics[width=\textwidth]{img/patientProcess.png}
 \textit{Vereinfachte Version des 'LifeCycle' des PatientProcess}
-%%%%%%%%%-------------------------- New Patient Process------------------------------%%%%%%%%%%%
-\textbf{NewPatientProcess}
-\begin{itemize}
-    \item erstellt einen neuen Patienten, der in die Warteschlange eingereiht wird
-    \item TODO
-\end{itemize}
+
+\subsection{NewPatientProcess}
+
+Die Klasse \texttt{NewPatientProcess} stellt eine Hilfsklasse dar, die in wiederkehrenden Abständen neue Patienten generiert. Dazu wird der Prozess in einer Schleife für eine zufällige Zeit angehalten, die durch \\ \texttt{EmergencyModel.getPatientArrivalTime()} bestimmt wird. Im Anschluss wird ein neuer Prozess der Klasse \texttt{PatientProcess} erzeugt und aktiviert. 
+
+Dazu wird im \texttt{EmergencyModel} ein Wert aus der Exponentialverteilung \\ \texttt{avgArrivalTime} um den Durchschnittswert von 40 Minuten gezogen, wobei negative Werte ausgeschlossen sind.
+
+Um festzulegen, ob der erzeugte Patient COVID-Verdachtsfall und Notfallpatient ist, werden \texttt{EmergencyModel.hasCovid()} und \\ \texttt{EmergencyModel.isEmergency()} verwendet. Dabei werden jeweils Werte aus Gleichverteilungen zwischen 0 und 1 gezogen und mit einem Schwellwert verglichen (0.05 für COVID, 0.2 für Notfälle), sodass durchschnittlich 5\% aller Patienten COVID-Verdachtsfälle und 20\% Notfälle sind.
+
 \begin{center}
-\includegraphics[scale=0.8]{img/newPatientProcess.png} \\
+\includegraphics[scale=0.55]{img/newPatientProcess.png} \\
 \textit{Vereinfachte Version des 'LifeCycle' des NewPatientProcess}
 \end{center}
-%%%%%%%%%--------------------------Doc Process------------------------------%%%%%%%%%%%
-\textbf{DocProcess}
-\begin{itemize}
-    \item TODO
-\end{itemize}
+
+\subsection{DocProcess}
+
+Die Priorisierung der Patienten wurde zunächst mithilfe von \\ \texttt{SimProcess.setSchedulingPriority()} und der \texttt{ProcessQueue} umgesetzt, die diese Priorität berücksichtigt.
+Um eine detailliertere statistische Auswertung zu erlauben, wurden jedoch später separate Warteschlangen für Notfälle, Erst- und Zweitbehandlung eingeführt.
+Es liegt daher nun in der Verantwortung des \texttt{DocProcess}, die Prioritäten zu beachten.
+Daher überprüft ein Arzt immer zuerst die Warteschlange der Notfälle, dann die der Zweitbehandlungen und schließlich die der Nicht-Notfälle.
+
+Sobald eine Warteschlange besetzt ist, entfernt der Arzt den jeweiligen Patienten aus der Warteschlange und beginnt die Behandlung.
+Dazu wird \\ \texttt{EmergencyModel.getTreatmentTime()} aufgerufen und der Arzt für die entsprechende Zeitspanne durch \texttt{hold()} in einen passiven Zustand versetzt.
+Der Methode werden dabei Parameter übergeben, die aussagen, ob es sich um einen Notfallpatienten und um eine Erstbehandlung handelt.
+Mithilfe verschiedener Gleichverteilungen wird dann eine entsprechende Behandlungszeit gezogen.
+Notfallpatienten haben dabei durchschnittlich eine doppelt so lange Behandlungszeit wie andere Patienten:\\
+
+\begin{tabular}{ccc}
+Zeit in Minuten & \textbf{normale Behandlung} & \textbf{Notfall-Behandlung} \\
+\textbf{Erstbehandlung} & 15 - 60 & 30 - 120 \\
+\textbf{Zweitbehandlung} & 5 - 30  & 10 -  60
+\end{tabular}
+\\\\
+
+Der Arzt versetzt sich selbst für die Behandlungszeit in einen passiven Zustand und aktiviert im Anschluss den \texttt{PatientProcess}, damit dieser sich entweder für die Zweitbehandlung einreiht oder die Notaufnahme verlässt.
+
+Für den Fall, dass in keiner der Warteschlangen Patienten warten,
+fügt sich der jeweilige Arzt selbst in die Ärzte-Warteschlange des \texttt{EmergencyModel} ein und versetzt sich in einen passiven Zustand,
+bis er wieder von einem Patienten aktiviert wird.
+
+\subsection{CovidDocProcess}
+
+Der COVID-Arzt ist nur dafür zuständig, Verdachtsfälle zu behandeln.
+Da sich der Lebenszyklus des Arztes auf der COVID-Station so stark von den anderen Ärzten unterscheidet,
+wurde er in einen eigenen Prozess ausgelagert.
+Die Unterschiede sind, dass der Arzt lediglich die Warteschlange für COVID-Patienten überprüft, bevor er Behandlungen beginnt; und dass er nach jeder Behandlung zusätzlich 10 Minuten Zeit benötigt, um die Station zu desinfizieren.
+
+Die Behandlungszeit für COVID-Patienten beträgt 15-60 Minuten (für sie gibt es keine Zweitbehandlung).
+
+Im \texttt{EmergencyModel} gibt es eine eigene Warteschlange für den Covid-Arzt.
+
 \includegraphics[width=\textwidth]{img/docProcess.png}
 \textit{Vereinfachte Version des 'LifeCycle' des DocProcess}
-%%%%%%%%%--------------------------Emergency Model------------------------------%%%%%%%%%%%
-\textbf{EmergencyModel}
+
+\subsection{EmergencyModel}
 \begin{itemize}
+    \item TODO
     \item In dieser Klasse befinden sich die \textit{main-method} und die Initialisierungsmethoden, sowie jene die zur Darstellung der Werte mit JFree benötigt werden
 \end{itemize}
-%%%%%%%%%--------------------------Covid Doc Process------------------------------%%%%%%%%%%%
-\textbf{CovidDocProcess}
-\begin{itemize}
-    \item Prozess des Covid Arztes, der nur die Verdachtsfälle behandelt
-    \item analog zum DocProcess, nur dass er noch 10 Minuten nach jeder Behandlung seine Station desinfizieren muss
-    \item befindet sich in eigener Queue
-\end{itemize}
+
+\subsection{Erweiterung: Stoßzeiten}
+... TODO
+
+\subsection{Erweiterung: Todesfälle}
+... TODO
 
 \section{Simulationsergebnisse}
 \subsection{Durchschnittliche Werte nach 50 runs (ca. 720 patients)}
